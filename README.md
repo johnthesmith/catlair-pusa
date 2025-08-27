@@ -3,6 +3,8 @@
 Pusa 2.0 — server-driven declarative UI
 
 
+# Диаграмма взаимодействия
+
 ```mermaid
 graph LR
     PF[PusaFront]

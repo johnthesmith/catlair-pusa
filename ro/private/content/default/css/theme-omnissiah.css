@@ -1,0 +1,99 @@
+body
+{
+    background-color: #0b0b0b;
+    color: #c0bfae;
+}
+
+.top
+{
+    background-color: #7e0a02;
+    color: #f0e6d2;
+}
+
+.menu
+{
+    background-color: #1a1a1a;
+    color: #d0c8b0;
+}
+
+.menu .item
+{
+    color: #c99846;
+    background-color: transparent;
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.menu .item:hover
+{
+    background-color: #c99846;
+    color: #1a1a1a;
+}
+
+.page
+{
+    background-color: #121212;
+    color: #c0bfae;
+}
+
+.bottom
+{
+    background-color: #0d0d0d;
+    color: #777;
+}
+
+.page blockquote
+{
+    border-left-color: #7e0a02;
+    color: #b08f4e;
+}
+
+.page pre
+{
+    background-color: #1e1e1e;
+    color: #c99846;
+}
+
+.page code
+{
+    background-color: #3a2f1e;
+    color: #e0c278;
+}
+
+.page a
+{
+    color: #c99846;
+    text-decoration: none;
+}
+
+.page a:hover
+{
+    text-decoration: underline;
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form select
+{
+    background-color: #1e1e1e;
+    color: #ddd;
+}
+
+form input[type="text"]::placeholder,
+form input[type="email"]::placeholder,
+form input[type="password"]::placeholder
+{
+    color: #8a7347;
+}
+
+form button
+{
+    background-color: #7e0a02;
+    color: #f0e6d2;
+}
+
+form button:hover
+{
+    background-color: #9a140a;
+}
+

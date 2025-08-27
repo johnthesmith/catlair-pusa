@@ -1,0 +1,137 @@
+/* colors.css */
+
+body
+{
+    background-color: #111;
+    color: #ddd;
+}
+
+
+
+.top
+{
+    background-color: #f97316;
+    background-image: url(/content/read/images/pusa.svg);
+    background-position: 1em 1em;
+    background-repeat: no-repeat;
+    background-size: 5em 5em;
+    color: #fff;
+    padding-left: 7em;
+}
+
+
+
+.bottom
+{
+    background-color: #1a1a1a;
+    color: #ddd;
+}
+
+
+
+.page
+{
+    background-color: #222;
+    color: #ddd;
+}
+
+
+
+.page blockquote
+{
+    border-left-color: #f97316;
+    color: #ffbb66;
+}
+
+
+
+.page pre 
+{
+    background-color: #333;
+    color: #ffa500;
+}
+
+
+
+.page code
+{
+    background-color: #4a2f0e;
+    color: #ffb347;
+}
+
+
+
+.page a
+{
+    color: #f97316;
+    text-decoration: none;
+}
+
+
+
+.page a:hover
+{
+    text-decoration: underline;
+}
+
+
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form select
+{
+    background-color: #333;
+    color: #ddd;
+}
+
+
+
+form input[type="text"]::placeholder,
+form input[type="email"]::placeholder,
+form input[type="password"]::placeholder
+{
+    color: #b76e0f;
+}
+
+
+
+form button
+{
+    background-color: #f97316;
+    color: #fff;
+}
+
+
+
+form button:hover
+{
+    background-color: #e25800;
+}
+
+
+
+
+/* Menu */
+.menu
+{
+    background-color: #1a1a1a;
+    color: #ddd;
+}
+
+
+
+.menu .item
+{
+    color: #f97316;
+    background-color: transparent;
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+
+
+.menu .item:hover
+{
+    background-color: #f97316;
+    color: #fff;
+}

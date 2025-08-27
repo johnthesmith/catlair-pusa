@@ -1,8 +1,8 @@
 #!/bin/bash
 # Update the repository on the current branch
 
-# Security Warning
-# It is not recommended to run this file without reviewing its contents first
+# Security Warning!!! It is not recommended to run this file
+# without reviewing its contents first
 
 echo -e "\033[0;32m$(pwd)\033[0m"
 

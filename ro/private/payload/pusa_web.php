@@ -16,13 +16,13 @@ require_once LIB . '/pusa/pusa.php';
 /*
     Api class declaration
 */
-class PusaTest extends Pusa
+class PusaWeb extends Pusa
 {
     /*
         Default content
     */
-    public function go()
+    public function init()
     {
-        $this -> debug() -> js( 'aaa' ) -> dumpCommands();
+//        $this -> debug() -> js( 'aaa' ) -> dumpCommands();
     }
 }

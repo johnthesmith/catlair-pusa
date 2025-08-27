@@ -1,0 +1,12 @@
+/*
+    This is the main CSS file of Catlair
+*/
+
+/* Include config parameters */
+<cl content="context.yaml" keys="yaml"/>
+
+/* Include layout elements css */
+<cl c="css/layout.css"/>
+
+/* Include color scheme */
+<cl c="css/%color-theme%.css"/>

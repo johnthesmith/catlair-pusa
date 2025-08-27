@@ -70,7 +70,7 @@ class Pusa
             Адрес вызова инициирующего события
             Если не пустое вызов будет направлен на бэк
         */
-        initCallback = null
+        initCall = null
     )
     {
         /* Конфигурация */
@@ -111,12 +111,10 @@ class Pusa
         this.createIndicator();
         /* оповещение журнала о запуске Pusa*/
         this.log( Pusa.LOG_INFO, 'Pusa started' );
-        if( initCallback )
+        if( initCall )
         {
             /* отправка события инициации Pusa */
-            this
-            .event( "init", initCallback )
-            .eventHandler( "init", { moment: Date.now() });
+            this.sendCommand( "init", null, null, initCall );
         }
     }
 
@@ -125,9 +123,13 @@ class Pusa
     /*
         Cоздание Pusa
     */
-    static create()
+    static create
+    (
+        /* Адрес инициирцющего вызова, если null не выполняется */
+        initCall = null
+    )
     {
-        return new Pusa();
+        return new Pusa( initCall );
     }
 
 
@@ -207,7 +209,7 @@ class Pusa
         /* аргументы события */
         event,
         /* адрес вызова */
-        callback
+        url
     )
     {
         this.requestId ++;
@@ -225,7 +227,8 @@ class Pusa
 
         /* AJAX запрос */
         const xhr = new XMLHttpRequest();
-        xhr.open( "POST", callback || this.cfg.callback, true );
+        xhr.open( "POST", url || this.cfg.callback, true );
+        xhr.responseType = "text";
         xhr.setRequestHeader
         (
             "Content-Type",
@@ -235,32 +238,57 @@ class Pusa
         /* Обработчик */
         xhr.onreadystatechange = () =>
         {
-            if( xhr.readyState === 4 )
+            switch( xhr.readyState )
             {
-                if( xhr.status >= 200 && xhr.status < 300 )
-                {
-                    let resp;
-                    try
+                case 4:
+                    if( xhr.status >= 200 && xhr.status < 300 )
                     {
-                        /* десериализация и вызов */
-                        resp = JSON.parse( xhr.responseText );
+                        if( xhr.responseText )
+                        {
+                            let resp;
+                            try
+                            {
+                                /* десериализация и вызов */
+                                resp = JSON.parse( xhr.responseText );
+                            }
+                            catch( e )
+                            {
+                                this.log
+                                (
+                                    Pusa.LOG_ERROR,
+                                    "pusa-responce-error",
+                                    e
+                                );
+                            }
+                            if( resp )
+                            {
+                                this.processResponse( requestId, url, resp );
+                            }
+                        }
+                        else
+                        {
+                            this.log
+                            (
+                                Pusa.LOG_ERROR,
+                                "pusa-responce-is-empty",
+                                xhr.status
+                            );
+                        }
                     }
-                    catch( e )
+                    else
                     {
-                        this.error( "pusa-responce-error", e );
+                        this.log
+                        (
+                            Pusa.LOG_ERROR,
+                            "pusa-request-error",
+                            xhr.status
+                        );
                     }
-                    if( resp )
-                    {
-                        this.processResponse( requestId, resp );
-                    }
-                }
-                else
-                {
-                    this.error( "pusa-request-error", xhr.status );
-                }
+                break;
             }
         };
-        xhr.send(payload);
+
+        xhr.send( payload );
     }
 
 
@@ -272,24 +300,35 @@ class Pusa
     (
         /* Идентификатор запроса */
         id,
-        /*
-            Ответ backend
-            {
-                dir: массив директив
-            }
-        */
+        /* Адрес вызова */
+        url,
+        /* Ожидается ответ backend { dir: массив директив } */
         resp
     )
     {
         /* убрать из активных запросов */
         const idx = this.activeRequest.indexOf( id );
-        if(idx >= 0) this.activeRequest.splice( idx, 1 );
+        if( idx >= 0 ) this.activeRequest.splice( idx, 1 );
 
         /* обработка директив */
-        if(resp?.dir)
+        if( resp?.dir )
         {
-            this.exec(resp.dir);
+            this.exec( resp.dir );
         }
+        else
+        {
+            this.log
+            (
+                Pusa.LOG_ERROR,
+                "pusa-directives-not-found",
+                {
+                    id: id,
+                    url: url,
+                    responce: resp
+                }
+            );
+        }
+
         /* обновляем индикатор */
         this.updateIndicator();
         return this;
@@ -1422,6 +1461,7 @@ class Pusa
                 case "error":   console.error( msg, detail ); break;
                 case "warning": console.warn( msg, detail );  break;
                 case "debug":   console.debug( msg, detail ); break;
+                case "info":    console.info( msg, detail );  break;
                 default:        console.log( msg, detail );   break;
             }
         }
