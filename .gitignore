@@ -1,0 +1,6 @@
+# Temporary files for nano
+
+*.swp
+*.save
+
+/rw/

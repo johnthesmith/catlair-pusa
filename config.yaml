@@ -1,0 +1,32 @@
+# Engine settings
+engine:
+  # Projects pathes for components searchig like files, payloads etc
+  projects:
+  - .
+  - ../default
+  # default arguments
+  default:
+    # For undefined route will be use followng route
+    route-name: make
+# Web settings 
+web:
+  # options for cli starting with `php index.php`
+  cli:
+    # default url for cli mode
+    # url: http://localhost
+  index: index.html
+  # Session settings
+  session:
+    # Time to live for session cookie
+    ttl-sec: 86400
+    # This is default secure key
+    ssl-key: MySecureKey
+  default:
+    # Default path and query used for an empty URL
+    # /path/...?key=value&...
+    uri: /content/page/main.html
+    # Default contexts list
+    # При отсутсвии контекста в в сессии используется 
+    # Первый элемент указанного списка
+    contexts:
+    - default
