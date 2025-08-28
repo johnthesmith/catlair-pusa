@@ -56,9 +56,9 @@ class Pusa
     allowedDirectives = new Set
     ([
         "config", "clear", "root", "body", "parents", "children", "push", "pop",
-        "insert", "remove", "setAttr", "setProp", "setContent", "addClasses",
+        "insert", "remove", "setAttr", "setProp", "setText", "addClasses",
         "removeClasses", "domEvent", "event", "start", "stop", "open", "title", "back",
-        "forward", "set", "get", "toClipboard", "fromClipboard", "log", "call", "js"
+        "forward", "set", "get", "toClipboard", "fromClipboard", "log", "method", "js"
     ]);
 
     /*
@@ -98,7 +98,6 @@ class Pusa
         /* активные запросы */
         this.activeRequest = [];
 
-
         this.domStorage = new WeakMap();
         /* состояние */
         this.resultCode = Pusa.R_OK;
@@ -131,6 +130,7 @@ class Pusa
     {
         return new Pusa( initCall );
     }
+
 
 
     /*
@@ -257,7 +257,11 @@ class Pusa
                                 (
                                     Pusa.LOG_ERROR,
                                     "pusa-responce-error",
-                                    e
+                                    {
+                                        status: xhr.status,
+                                        url: url,
+                                        response: xhr.responseText,
+                                    }
                                 );
                             }
                             if( resp )
@@ -271,7 +275,10 @@ class Pusa
                             (
                                 Pusa.LOG_ERROR,
                                 "pusa-responce-is-empty",
-                                xhr.status
+                                {
+                                    status: xhr.status,
+                                    url: url
+                                }
                             );
                         }
                     }
@@ -1149,10 +1156,10 @@ class Pusa
     (
         /* запрашиваемый ключ */
         key = null,
-        /* данные вызывающей стороны */
-        data = null,
         /* адрес обратного вызова */
-        callback = null
+        callback = null,
+        /* данные вызывающей стороны */
+        data = null
     )
     {
         if( key !== null )
@@ -1253,8 +1260,7 @@ class Pusa
                 ( el, i) =>
                 {
                     const props = tupple[ i % n ];
-                    for( const k in props )
-                        el[k] = props[k];
+                    for( const k in props ) el[ k ] = props[ k ];
                 }
             );
         }
@@ -1272,7 +1278,7 @@ class Pusa
         - Массив: циклическое применение по фокусу
         Всегда через innerHTML
     */
-    setContent
+    setText
     (
         /* Контент строка или массив строк контента для применения к фокусу */
         content
@@ -1351,7 +1357,7 @@ class Pusa
     /*
         создать CSS-класс с атрибутами
     */
-    classInsert
+    classCreate
     (
         /* идентификтаор создаваемого класса */
         id
@@ -1365,7 +1371,7 @@ class Pusa
     /*
         удалить CSS-класс
     */
-    classRemove
+    classDelete
     (
         /*
             id - идентификтаор создаваемого класса
@@ -1378,11 +1384,10 @@ class Pusa
 
 
 
-
     /*
         Вызов метода для каждого фокусе
     */
-    call
+    method
     (
         /* вызываемый метод */
         method,
@@ -1487,8 +1492,7 @@ class Pusa
 }
 
 
-//
-//
+
 //loadResource({type, url, async = false})
 //{
 //    this.push()
