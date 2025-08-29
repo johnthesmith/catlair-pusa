@@ -1,12 +1,27 @@
 /*
-    Pusa — фронтенд-модуль для декларативного управления DOM и событиями.
+    Catlair PHP Copyright (C) 2021 https://itserv.ru
 
+    This program (or part of program) is free software: you can
+    redistribute it and/or modify it under the terms of the GNU Aferro
+    General Public License as published by the Free Software Foundation,
+    either version 3 of the License, or (at your option) any later version.
+
+    This program (or part of program) is distributed in the hope that it
+    will be useful, but WITHOUT ANY WARRANTY; without even the implied
+    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+    the GNU Aferro General Public License for more details. You should have
+    received a copy of the GNU Aferror General Public License along with
+    this program. If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
+/*
+    Pusa — фронтенд-модуль для декларативного управления DOM и событиями.
    ┌──────────┐                  ┌────────────┐                 ┌───────┐
    │          │─── директивы ───▶│    Pusa    │──── контент ───▶│       │
    │ Backend  │                  │ (Frontend) │                 │  DOM  │
    │          │◀─── события ─────│            │◀─── события ────│       │
    └──────────┘                  └────────────┘                 └───────┘
-
     Позволяет:
     - выделять элементы фокусом для действий;
     - навешивать события и директивы локально или отправлять на сервер;
@@ -55,10 +70,11 @@ class Pusa
     /* Перечень разрешенных директив */
     allowedDirectives = new Set
     ([
-        "config", "clear", "root", "body", "parents", "children", "push", "pop",
-        "insert", "remove", "setAttr", "setProp", "setText", "addClasses",
-        "removeClasses", "domEvent", "event", "start", "stop", "open", "title", "back",
-        "forward", "set", "get", "toClipboard", "fromClipboard", "log", "method", "js"
+        "config", "clear", "root", "body", "parents", "children", "push",
+        "pop", "insert", "remove", "setAttr", "setProp", "setText",
+        "addClasses", "removeClasses", "domEvent", "event", "start",
+        "stop", "open", "title", "back", "forward", "set", "get",
+        "toClipboard", "fromClipboard", "log", "method", "js"
     ]);
 
     /*
@@ -66,6 +82,8 @@ class Pusa
     */
     constructor
     (
+        /* Контейнер для извлечения pusa инструкций */
+        initContainerId = null,
         /*
             Адрес вызова инициирующего события
             Если не пустое вызов будет направлен на бэк
@@ -110,10 +128,20 @@ class Pusa
         this.createIndicator();
         /* оповещение журнала о запуске Pusa*/
         this.log( Pusa.LOG_INFO, 'Pusa started' );
-        if( initCall )
+
+        let el = document.getElementById( 'pusa-init' );
+        if( el )
         {
-            /* отправка события инициации Pusa */
-            this.sendCommand( "init", null, null, initCall );
+            this.processResponse( 0, null, JSON.parse( el.innerHTML ));
+            el.remove();
+        }
+        else
+        {
+            if( initCall )
+            {
+                /* отправка события инициации Pusa */
+                this.sendCommand( "init", null, null, initCall );
+            }
         }
     }
 
@@ -124,11 +152,13 @@ class Pusa
     */
     static create
     (
+        /* Контейнер для извлечения pusa инструкций */
+        initContainerId = null,
         /* Адрес инициирцющего вызова, если null не выполняется */
         initCall = null
     )
     {
-        return new Pusa( initCall );
+        return new Pusa( initContainerId, initCall );
     }
 
 
@@ -151,7 +181,12 @@ class Pusa
         const evt = this.events[ id ];
         if( evt === undefined )
         {
-            this.log( Pusa.LOG_WARNING, "event-not-found", { eventId: id, type });
+            this.log
+            (
+                Pusa.LOG_WARNING,
+                "event-not-found",
+                { eventId: id, type }
+            );
         }
         else
         {
@@ -365,18 +400,15 @@ class Pusa
             case Pusa.FOCUS_SET:
                 this.focus = newFocus;
             break;
-
             case Pusa.FOCUS_MERGE:
                 this.focus = [ ...new Set([ ...this.focus, ...newFocus ]) ];
             break;
-
             case Pusa.FOCUS_EXCLUDE:
                 this.focus = this.focus.filter
                 (
                     el => !newFocus.includes( el )
                 );
             break;
-
             default:
                 /* По умолчанию FOCUS_SET */
                 this.focus = newFocus;
@@ -391,7 +423,6 @@ class Pusa
 
         return this;
     }
-
 
 
 
@@ -413,7 +444,12 @@ class Pusa
     {
         if( !Array.isArray( directives ))
         {
-            this.log( Pusa.LOG_WARNING, "response-is-not-an-array", directives );
+            this.log
+            (
+                Pusa.LOG_WARNING,
+                "response-is-not-an-array",
+                directives
+            );
         }
         else
         {
@@ -519,7 +555,9 @@ class Pusa
             case "in":
             {
                 const [stack, needle] = args;
-                return Array.isArray( stack ) && stack.includes( getVal( needle ));
+                return 
+                Array.isArray( stack ) &&
+                stack.includes( getVal( needle ));
             }
             case "not":
                 return !this.filter(elem, args[0]);
@@ -738,7 +776,12 @@ class Pusa
     {
         let currentFocus = [ ...this.focus ];
         let resultBuffer = [];
-        for(let i = 0; currentFocus.length > 0 && (depth === 0 || i < depth); i++)
+        for
+        (
+            let i = 0;
+            currentFocus.length > 0 && (depth === 0 || i < depth);
+            i++
+        )
         {
             const nextFocus = [];
 

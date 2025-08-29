@@ -24,7 +24,7 @@ web:
   default:
     # Default path and query used for an empty URL
     # /path/...?key=value&...
-    uri: /content/page/main.html
+    uri: /helloworld/index
     # Default contexts list
     # При отсутсвии контекста в в сессии используется 
     # Первый элемент указанного списка
