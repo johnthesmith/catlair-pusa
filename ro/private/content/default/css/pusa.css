@@ -38,31 +38,39 @@
 
 
 
-html, body 
+
+
+
+
+
+.code 
 {
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    display: block;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: monospace;
+    padding-bottom: 1em;
+    margin-bottom: 1em;
 }
 
-.top, .bottom {
-    flex: 0 0 auto;
-    padding: 20px;
-    text-align: center;
+.code::before 
+{
+    display: block;
     font-weight: bold;
+    color: #fff;
+    padding: 0.5em;
+    border-radius: 0.5em;
 }
 
-.page {
-    flex: 1 1 auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+/* Темы */
+.js      { background: #80008033; }
+.js::before { content: "JavaScript"; background: #800080; }
 
-/* раскраска */
-.top { background-color: #4CAF50; color: white; }
-.page { background-color: #f0f0f0; color: #333; }
-.bottom { background-color: #2196F3; color: white; }
+.html    { background: #00008033 }
+.html::before { content: "HTML"; background: #000080; }
+
+.json     { background: #64640033 }
+.json::before { content: "json"; background: #646400; }
+
+.php     { background: #00640033 }
+.php::before { content: "PHP"; background: #006400; }

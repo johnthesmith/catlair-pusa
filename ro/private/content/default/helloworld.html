@@ -1,1 +1,58 @@
-helloworld
+<h1>
+    Hello world
+</h1>
+
+<p> This small example demonstrates Pusa’s ability to work only 
+    with backend code.
+    <button id="helloworld">
+        Click me
+    </button>
+</p>
+
+<div class="code js">
+    /* no custom js */
+</div>
+
+<div class="code php">
+    /* Pusa SDK */
+    $this 
+    -> action                                       /* define new action */ 
+    ( 
+        'helloworld-click',                         /* id of action */
+        [ 
+            $this -> copy()                         /* create a branch of directives*/
+            -> alert( 'Hello World' )               /* directive for action */
+        ]
+    )
+    -> body()                                       /* focus on DOM body */
+    -> children( [ 'equal', '#id', 'helloworld' ])  /* find helloworld element */
+    -> event( 'click', 'helloworld-click' );        /* set action on click */
+</div>
+
+<div class="code html">
+    &lt;button id="helloworld"&gt;
+        Click me
+    &lt;/button&gt;
+</div>
+
+
+
+
+<p> 
+    Pusa uses a declarative format of directives that are generated during 
+backend method execution. 
+</p>
+
+<div class="code json">
+[
+    [ 
+        "action", "helloworld-click",
+        [
+            [ "alert", "Hello world" ]
+        ]
+    ],
+    [ "body" ],
+    [ "children", [ "equal", "#id", "helloworld" ] ],
+    [ "event", "click", "helloworld-click" ]
+]
+</div>

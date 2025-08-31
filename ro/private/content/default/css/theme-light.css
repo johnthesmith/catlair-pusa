@@ -3,34 +3,69 @@ body {
     color: #1e1e1e;
 }
 
-.top {
+.top
+{
     background-color: #3b4b5c;
+    background-image: url(/content/read/images/pusa.svg);
+    background-position: 1em 1em;
+    background-repeat: no-repeat;
+    background-size: 5em 5em;
     color: #fff;
+    padding-left: 7em;
 }
 
-.page {
+.page
+{
     background-color: #ffffff;
 }
 
-.bottom {
+.bottom
+{
     background-color: #dfe6ec;
     color: #333;
 }
 
-.page blockquote {
+.page blockquote
+{
     border-left: 4px solid #ccc;
     color: #555;
 }
 
-.page pre {
+.page pre
+{
     background-color: #f0f0f0;
 }
 
-.page code {
+.page code
+{
     background-color: #eef;
 }
 
-.page a {
+.page a
+{
     color: #3366cc;
 }
 
+
+
+
+
+/* Menu */
+.menu
+{
+    background-color: #3b4b5c;
+    color: #fff;
+}
+
+.menu .item
+{
+    color: #fff;
+    background-color: transparent;
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.menu .item:hover
+{
+    background-color: #1b2b3c;
+    color: #fff;
+}
