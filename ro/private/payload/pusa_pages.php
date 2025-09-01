@@ -16,6 +16,9 @@ require_once LIB . '/pusa/pusa_web.php';
 */
 class PusaPages extends PusaWeb
 {
+    /*
+        Activate page
+    */
     private function activate()
     {
         return $this
@@ -23,22 +26,38 @@ class PusaPages extends PusaWeb
         -> children([ 'in', 'lang', '#class' ])
         -> action
         (
-            'lang',
+            'switch_lang',
             null,
-            '/pusa-pages/lang',
-            [ 'type' => '&type', 'lang_id' => '#id' ]
+            '/pusa-pages/switch_lang',
+            [
+                'type' => '&type',
+                'lang-id' => '#id'
+            ]
         )
-        -> event( 'click', 'lang' )
+        -> event( 'click', 'switch_lang' )
         ;
     }
 
 
-    public function lang( $lang_id )
+
+    /*
+        Switch language
+    */
+    public function switch_lang
+    (
+        string $lang_id = ''
+    )
     {
+        /* Apply context */
+        $this
+        -> getApp()
+        -> getSession()
+        -> set( 'context', $lang_id );
+
         return $this
-        -> log( 'info', $this->getApp()->getParams() )
         -> log( 'info', $lang_id )
-;
+        -> open()
+        ;
     }
 
 

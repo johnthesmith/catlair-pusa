@@ -1,0 +1,57 @@
+<h1>
+    Hello world
+</h1>
+
+<p> 
+    Этот небольшой пример демонстрирует способность Pusa работать исключительно с кодом backend.
+    <button id="helloworld">
+        Нажми меня
+    </button>
+</p>
+
+<div class="code js">
+    /* без спицифического кода */
+</div>
+
+<div class="code php">
+    /* Pusa SDK */
+    $this 
+    -> action                                       /* определили новое действие */ 
+    ( 
+        'helloworld-click',                         /* id действия */
+        [ 
+            $this -> copy()                         /* создали ветку директив */
+            -> alert( 'Hello World' )               /* указали директиву alert */
+        ]
+    )
+    -> body()                                       /* установили фокус на body */
+    -> children( [ 'equal', '#id', 'helloworld' ])  /* сместили фокус на элемент по id */
+    -> event( 'click', 'helloworld-click' );        /* назначили действие на событие */
+</div>
+
+<div class="code html">
+    &lt;button id="helloworld"&gt;
+        Click me
+    &lt;/button&gt;
+</div>
+
+
+
+
+<p> 
+Pusa использует декларативный формат директив, который формируется во время выполнения методов на сервере.
+</p>
+
+<div class="code json">
+[
+    [ 
+        "action", "helloworld-click",
+        [
+            [ "alert", "Hello world" ]
+        ]
+    ],
+    [ "body" ],
+    [ "children", [ "equal", "#id", "helloworld" ] ],
+    [ "event", "click", "helloworld-click" ]
+]
+</div>

@@ -1213,8 +1213,8 @@ class Pusa
     (
         /*  ссылка */
         url = null,
-        /* окно направление target, blank, ... */
-        target = "_blank"
+        /* окно направление target, _blank, _self... */
+        target = "_self"
     )
     {
         if( url )
@@ -1223,7 +1223,7 @@ class Pusa
         }
         else
         {
-            this.log( Pusa.LOG_WARNING, "open:url-not-found" );
+            window.location.reload( true );
         }
         return this;
     }
