@@ -3,43 +3,61 @@
 </h1>
 
 <p> 
-    Этот небольшой пример демонстрирует способность Pusa работать исключительно с кодом backend.
     <button id="helloworld">
         Нажми меня
     </button>
 </p>
 
-<div class="code js">
-    /* без спицифического кода */
-</div>
-
-<div class="code php">
-    /* Pusa SDK */
-    $this 
-    -> action                                       /* определили новое действие */ 
-    ( 
-        'helloworld-click',                         /* id действия */
-        [ 
-            $this -> copy()                         /* создали ветку директив */
-            -> alert( 'Hello World' )               /* указали директиву alert */
-        ]
-    )
-    -> body()                                       /* установили фокус на body */
-    -> children( [ 'equal', '#id', 'helloworld' ])  /* сместили фокус на элемент по id */
-    -> event( 'click', 'helloworld-click' );        /* назначили действие на событие */
-</div>
+<p>
+    При запросе этой страницы backend Pusa формирует в том числе следующий HTML код:
+</p>
 
 <div class="code html">
-    &lt;button id="helloworld"&gt;
-        Click me
-    &lt;/button&gt;
+...
+&lt;button id="helloworld"&gt;
+    Нажми меня
+&lt;/button&gt;
+...
 </div>
 
+<p>
+    ... а так же выполняет PHP скрипт:
+</p>
+
+
+<div class="code php">
+/* Pusa SDK */
+$this 
+-> action                                   /* определили новое действие */ 
+( 
+    'helloworld-click',                     /* id действия */
+    [ 
+        $this -> copy()                     /* создали ветку директив */
+        -> alert( 'Hello World' )           /* указали директиву alert */
+    ]
+)
+-> body()                                   /* установили фокус на body */
+-> childrenById( 'helloworld' )             /* сместили фокус на элемент по id */
+-> event( 'click', 'helloworld-click' );    /* назначили действие на событие */
+</div>
+
+
+<p>
+    Frontend не получает какого либо специфического JS скрипта для прикладной задачи.
+</p>
+
+<div class="code js">
+/* без специфического кода */
+</div>
 
 
 
 <p> 
-Pusa использует декларативный формат директив, который формируется во время выполнения методов на сервере.
+
+    Обработка активныйх действий выполняется скриптом <a 
+    href="https://github.com/johnthesmith/catlair-pusa/blob/main/ro/private/content/default/js/pusa.js" 
+    target="_blank">pusa.js</a> на основе декларативного формата, формируемого 
+    сервером.
 </p>
 
 <div class="code json">
@@ -55,3 +73,8 @@ Pusa использует декларативный формат директи
     [ "event", "click", "helloworld-click" ]
 ]
 </div>
+
+
+<p>
+    Таким образом разработка активной части frontend приложения перенесена на backend.
+</p>

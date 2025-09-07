@@ -51,6 +51,7 @@
     font-family: monospace;
     padding-bottom: 1em;
     margin-bottom: 1em;
+    border-left: 1em solid;
 }
 
 .code::before 
@@ -59,18 +60,52 @@
     font-weight: bold;
     color: #fff;
     padding: 0.5em;
-    border-radius: 0.5em;
 }
 
-/* Темы */
-.js      { background: #80008033; }
-.js::before { content: "JavaScript"; background: #800080; }
+.js      
+{
+    background: #80008033;
+    border-color: #80008033;
+}
 
-.html    { background: #00008033 }
-.html::before { content: "HTML"; background: #000080; }
+.js::before 
+{
+    content: "JavaScript"; 
+    background: #800080;
+}
 
-.json     { background: #64640033 }
-.json::before { content: "json"; background: #646400; }
+.html
+{
+    background: #00008033;
+    border-color: #00008033;
+}
 
-.php     { background: #00640033 }
-.php::before { content: "PHP"; background: #006400; }
+.html::before
+{
+    content: "HTML";
+    background: #000080;
+}
+
+.json
+{
+    background: #64640033;
+    border-color: #64640033;
+}
+
+.json::before
+{
+    content: "json";
+    background: #646400;
+}
+
+.php
+{
+    background: #00640033;
+    border-color: #00640033;
+}
+
+.php::before
+{
+    content: "PHP";
+    background: #006400;
+}

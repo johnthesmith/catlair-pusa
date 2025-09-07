@@ -10,29 +10,29 @@
 </p>
 
 <div class="code js">
-    /* no custom js */
+/* no custom js */
 </div>
 
 <div class="code php">
-    /* Pusa SDK */
-    $this 
-    -> action                                       /* define new action */ 
-    ( 
-        'helloworld-click',                         /* id of action */
-        [ 
-            $this -> copy()                         /* create a branch of directives*/
-            -> alert( 'Hello World' )               /* directive for action */
-        ]
-    )
-    -> body()                                       /* focus on DOM body */
-    -> children( [ 'equal', '#id', 'helloworld' ])  /* find helloworld element */
-    -> event( 'click', 'helloworld-click' );        /* set action on click */
+/* Pusa SDK */
+$this 
+-> action                                       /* define new action */ 
+( 
+    'helloworld-click',                         /* id of action */
+    [ 
+        $this -> copy()                         /* create a branch of directives*/
+        -> alert( 'Hello World' )               /* directive for action */
+    ]
+)
+-> body()                                       /* focus on DOM body */
+-> childrenById( 'helloworld' )                 /* find helloworld element */
+-> event( 'click', 'helloworld-click' );        /* set action on click */
 </div>
 
 <div class="code html">
-    &lt;button id="helloworld"&gt;
-        Click me
-    &lt;/button&gt;
+&lt;button id="helloworld"&gt;
+    Click me
+&lt;/button&gt;
 </div>
 
 

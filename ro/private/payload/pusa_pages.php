@@ -23,16 +23,17 @@ class PusaPages extends PusaWeb
     {
         return $this
         -> body()
+        -> config([ 'highlightFocus' => 'true' ])
         -> children([ 'in', 'lang', '#class' ])
         -> action
         (
             'switch_lang',
-            null,
-            '/pusa-pages/switch_lang',
-            [
-                'type' => '&type',
-                'lang-id' => '#id'
-            ]
+            $this -> copy()
+            -> send
+            (
+                '/pusa-pages/switch_lang',
+                [ 'lang-id' => '#id' ]
+            )
         )
         -> event( 'click', 'switch_lang' )
         ;
@@ -40,8 +41,7 @@ class PusaPages extends PusaWeb
 
 
 
-    /*
-        Switch language
+    /* Switch language
     */
     public function switch_lang
     (
@@ -52,7 +52,8 @@ class PusaPages extends PusaWeb
         $this
         -> getApp()
         -> getSession()
-        -> set( 'context', $lang_id );
+        -> set( 'context', $lang_id )
+        ;
 
         return $this
         -> log( 'info', $lang_id )
@@ -73,12 +74,11 @@ class PusaPages extends PusaWeb
         -> action
         (
             'helloworld-click',
-            $this -> copy()
-            -> alert( 'Hello World' )
+            $this -> copy() -> alert( 'Hello World' )
         )
         -> body()
-        -> children( [ 'equal', '#id', 'helloworld' ])
-        -> event( 'click', 'helloworld-click', [], [ 'id' => 'idLang'] );
+        -> childrenById( 'helloworld' )
+        -> event( 'click', 'helloworld-click' );
         ;
     }
 
@@ -105,6 +105,94 @@ class PusaPages extends PusaWeb
         return $this
         -> activate()
         -> makeContent( 'example.html', 'Pusa - example' )
+        /* Example #1. Change content */
+        -> body()
+        -> childrenById( 'get-uuid' )
+        -> action
+        (
+            'get-uuid',
+            $this -> copy()
+            -> send( '/pusa-pages/get_uuid' )
+        )
+        -> event( 'click', 'get-uuid' )
+        /* Example #2. Clipboard */
+        /* copy action */
+        -> action
+        (
+            'copy',
+            $this
+            -> copy()
+            -> copyToTray( 'source' )
+            -> clipboardFromTray( 'source' )
+            -> alert( 'copy' )
+        )
+        /* paste action  */
+        -> action
+        (
+            'paste',
+            $this
+            -> copy()
+            -> clipboardToTray
+            (
+                'clipboard',
+                $this -> copy()
+                -> send
+                (
+                    /* Вызываем метод paste */
+                    '/pusa-pages/paste',
+                    /* в аргумент clipboard кладем состояние лотка */
+                    [ 'clipboard' => '*clipboard' ]
+                )
+            )
+        )
+        /* clear action  */
+        -> action
+        (
+            'clear',
+            $this
+            -> copy()
+            -> body()
+            -> childrenById( 'clipboard-source' )
+            -> setValue([ '' ])
+        )
+        -> body()
+        -> childrenById( 'copypaste' )
+        -> children( true, 1 )
+        -> setPassive( true )
+
+        -> event( 'click', [ 'copy', 'paste', 'clear' ])
+        ;
+    }
+
+
+
+    /*
+        Example #1 handler
+        Set uuid
+    */
+    public function get_uuid()
+    {
+        $this
+        -> body()
+        -> childrenById( 'uuid' )
+        -> setValue([ clUuid() ])
+        ;
+    }
+
+
+
+    /*
+        Example #2 paste in to textarea
+    */
+    public function paste
+    (
+        string $clipboard = ''
+    )
+    {
+        return $this
+        -> body()
+        -> childrenById( 'clipboard-source' )
+        -> setValue([ 'backend: ' . $clipboard ])
         ;
     }
 }

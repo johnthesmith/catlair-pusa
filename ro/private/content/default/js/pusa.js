@@ -70,15 +70,55 @@ class Pusa
     /* Перечень разрешенных директив */
     allowedDirectives = new Set
     ([
+        /* Действия */
         "alert",
-        "config", "clear", "root", "body", "parents", "children", "push",
-        "pop", "insert", "remove", "setAttr", "setProp", "setText",
-        "addClasses", "removeClasses", "action", "event", "start",
-        "stop", "url", "open", "title", "back", "forward", "set", "get",
-        "toClipboard", "fromClipboard", "send", "log",
+        "config",
+        "log",
+        /* Управление фокусом */
+        "clear",
+        "root",
+        "body",
+        "parents",
+        "children",
+        "push",
+        "pop",
+        /* Управление DOM */
+        "insert",
+        "remove",
+        "setAttr",
+        "setValue",
+        "setProp",
+        "setText",
+        "setPassive",
+        "addClasses",
+        "removeClasses",
+        /* Управление действием*/
+        "action",
+        "event",
+        "start",
+        "stop",
+        "send",
+        /* Управление окружением */
+        "url",
+        "open",
+        "title",
+        "back",
+        "forward",
+        /* Работа с tray */
+        "setTray",
+        "clipboardFromTray",
+        "clipboardToTray",
+        "copyToTray",
+        "pasteFromTray",
+        /* Формы */
+        "sendFrom",
         /* Платформозависимые методы */
-        "object", "method", "js"
+        "object",
+        "method",
+        "js"
     ]);
+
+
 
     /*
         Конструктор Pusa
@@ -133,6 +173,10 @@ class Pusa
         this.createIndicator();
         /* оповещение журнала о запуске Pusa*/
         this.log( Pusa.LOG_INFO, 'Pusa started' );
+        /* последний элемент вызвывший событие */
+        this.lastElement = null;
+        /* последнее событие на элементе */
+        this.lastEvent = null;
 
         let el = document.getElementById( 'pusa-init' );
         if( el )
@@ -145,7 +189,7 @@ class Pusa
             if( initCall )
             {
                 /* отправка события инициации Pusa */
-                this.sendCommand( "init", null, initCall );
+                this.sendCmd( initCall );
             }
         }
     }
@@ -177,14 +221,16 @@ class Pusa
     (
         /* ключ в this.actions для поиска директив, данных и callback */
         id,
-        /* аргументы обратного вызова */
-        args = null,
         /* тип события, только для DOM (click, input и т.д.) */
-        type = null
+        type = null,
+        /* Handler element */
+        element = null,
+        /* Handler event */
+        event = null
     )
     {
-        const evt = this.actions[ id ];
-        if( evt === undefined )
+        const action = this.actions[ id ];
+        if( !action )
         {
             this.log
             (
@@ -195,41 +241,28 @@ class Pusa
         }
         else
         {
-            if( evt !== null )
+            if( action.throttle > 0 )
             {
-                /* Испольнение события */
-                const run = () =>
+                /* Проверяем таймер отложенного исполнения события */
+                if( !action.throttleTimer )
                 {
-                    const { directives, data, callback } = evt;
-                    if( Array.isArray( directives ) && directives.length > 0 )
-                        this.exec( directives );
-                    else
-                        this.sendCommand( type, args, callback );
-                };
-                if( evt.throttle > 0 )
-                {
-                    evt.lastEvent = args;
-                    /* Проверяем таймер отложенного исполнения события */
-                    if( !evt.throttleTimer )
-                    {
-                        /* Создаем таймер отложенного исполнения события */
-                        evt.throttleTimer = setTimeout
-                        (
-                            () =>
-                            {
-                                run();
-                                evt.throttleTimer = null;
-                                evt.lastEvent = null;
-                            },
-                            evt.throttle
-                        );
-                    }
+                    /* Создаем таймер отложенного исполнения события */
+                    action.throttleTimer = setTimeout
+                    (
+                        () =>
+                        {
+                            this.exec( action.directives, element, event );
+                            action.throttleTimer = null;
+                            action.lastEvent = null;
+                        },
+                        action.throttle
+                    );
                 }
-                else
-                {
-                    run();
-                }
-             }
+            }
+            else
+            {
+                this.exec( action.directives, element, event );
+            }
         }
         return this;
     }
@@ -238,31 +271,27 @@ class Pusa
 
     /*
         Отправка команды на сервер
-        cmd — объект команды
+        Техническая реализация
     */
-    sendCommand
+    sendCmd
     (
-        /* тип события */
-        type,
-        /* возвращаемые аргументы события args, events, attrs */
-        args,
         /* адрес вызова */
-        url
+        url,
+        /*
+            возвращаемые аргументы в формате ключ значение
+        */
+        args = {}
     )
     {
-        this.requestId ++;
+        /* Увеличение идентификатора */
+        this.requestId++;
         const requestId = this.requestId;
         this.activeRequest.push( requestId );
 
         /* AJAX запрос */
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", url || this.cfg.callback, true);
-        xhr.setRequestHeader
-        (
-            "Content-Type",
-            "application/json"
-        );
-
+        xhr.open( "POST", url || this.cfg.callback, true );
+        xhr.setRequestHeader( "Content-Type", "application/json" );
         /* Обработчик */
         xhr.onreadystatechange = () =>
         {
@@ -322,18 +351,17 @@ class Pusa
                 break;
             }
         };
-
-
-        /* Подготовка данных для POST в формате form-urlencoded */
-        const params =
-        {
-            request_id: requestId,
-            type: type,
-            /* а args разворачиваем плоско */
-            ...args
-        };
-
-        xhr.send( JSON.stringify( params ));
+        xhr.send
+        (
+            JSON.stringify
+            (
+                /* Подготовка данных для POST в формате form-urlencoded */
+                {
+                    request_id: requestId,
+                    ...args
+                }
+            )
+        );
     }
 
 
@@ -459,7 +487,11 @@ class Pusa
                 ...
             ]
         */
-        directives
+        directives,
+        /* Элемент для извлечения атрибутов (опционально) */
+        element = null,
+        /* Событие сформировавшее exec (опуионально) */
+        event = null
     )
     {
         if( !Array.isArray( directives ))
@@ -473,6 +505,8 @@ class Pusa
         }
         else
         {
+            this.lastEvent = event;
+            this.lastElement = element;
             directives.forEach
             (
                 item =>
@@ -500,6 +534,8 @@ class Pusa
                     }
                 }
             );
+            this.lastEvent = null;
+            this.lastElement = null;
         }
         return this;
     }
@@ -510,7 +546,7 @@ class Pusa
         Универсальный извлекатель значения
         Операнды:
             #abstract - исползуется абстракция pusa для
-            элемента (рекомендуется)
+            элемента (рекомендуется), элемент должен быть передан
                 #id
                 #type
                 #class
@@ -520,46 +556,48 @@ class Pusa
             @attribute - используется атрибут dom элемента
             $property - используется свойство dom элемента
             &array  - использование доп массива для извлечения
+            *key - используется атрибут как ключ tray
             value - возвращается прямое значение
     */
     getVal
     (
         operand,
         /* Элемент для извлечения */
-        elem,
+        element = null,
         /* Дополнительный массив для извлечения */
-        evt = null
+        event = null
     )
     {
         if (typeof operand !== "string") return operand;
-
         const source = operand.slice(1);
-
-        switch(operand[0])
+        switch( operand[ 0 ])
         {
             case "#": // Pusa-абстракции
-                switch(source)
+                if( element )
                 {
-                    case "id":      return elem.getAttribute("id");
-                    case "tag":     return elem.tagName;
-                    case "class":   return elem.getAttribute("class");
-                    case "content": return elem.innerText;
-                    case "value":   return elem.value;
-                    case "name":    return elem.getAttribute("name");
-                    default:        return undefined;
+                    switch(source)
+                    {
+                        case "id":      return element.getAttribute( "id" );
+                        case "tag":     return element.tagName;
+                        case "class":   return element.getAttribute( "class" );
+                        case "content": return element.innerText;
+                        case "value":   return element.value;
+                        case "name":    return element.getAttribute( "name" );
+                        default:        return undefined;
+                   }
                }
-
+               else
+               {
+                   return null;
+               }
+            case "*":  // tray-ключ
+                return this.tray[ source ];
             case "@": // DOM-атрибут
-                return elem.getAttribute(source);
-
+                return element ? element.getAttribute( source )  : null;
             case "$": // DOM-свойство
-                return elem[source];
-
+                return element ? element[ source ] : null;
             case "&":
-                if(!evt) return undefined;
-                const key = source;
-                return evt[key];
-
+                return event ? event[ source ] : null;
             default:  // прямое значение
                 return operand;
         }
@@ -591,6 +629,7 @@ class Pusa
         const [op, ...args] = cond;
         switch( op )
         {
+            case "==":
             case "equal":
             {
                 const [left, right] = args;
@@ -599,9 +638,9 @@ class Pusa
             case "in":
             {
                 const [ left, right ] = args;
-                let stack = this.getVal(right, elem);
+                let stack = this.getVal( right, elem );
                 if (!stack) return false;
-                let needle = this.getVal(left, elem);
+                let needle = this.getVal( left, elem );
                 stack = stack.split(/\s+/);
                 return stack.includes(needle);
             }
@@ -640,6 +679,7 @@ class Pusa
         this.resultDetail = detail;
         return this;
     }
+
 
 
     /**************************************************************************
@@ -688,7 +728,7 @@ class Pusa
         return this
         .push()
         .body()
-        .children( [ "equal", "id", "pusa-indicator" ] )
+        .children( [ "equal", "#id", "pusa-indicator" ] )
         .setAttr([{ class: this.activeRequest.length > 0 ? "show" : "hide" }])
         .pop()
         ;
@@ -858,9 +898,22 @@ class Pusa
                 }
             }
             currentFocus = nextFocus;
-            if(currentFocus.length === 0) break;
+            if( currentFocus.length === 0 ) break;
         }
-        this.applyFocus(resultBuffer, operator);
+        this.applyFocus( resultBuffer, operator );
+        if( this.focus.length == 0 )
+        {
+            this.log
+            (
+                Pusa.LOG_WARNING,
+                'focus-is-empty',
+                {
+                    filter: filter,
+                    depth: depth,
+                    operator: operator
+                }
+            );
+        }
         return this;
     }
 
@@ -977,7 +1030,7 @@ class Pusa
             const data = this.domStorage.get(el);
 
             /* Удаляем слушатель события, если есть */
-            if(data?.handler && data?.type)
+            if( data?.handler && data?.type )
             {
                 el.removeEventListener(data.type, data.handler);
             }
@@ -1003,36 +1056,68 @@ class Pusa
 
 
     /*
-        Регистрация действия
-        Действие может быть позднее вызвано при событии дом элемента
-        и по таймеру
+        Makes it impossible for elements in focus to be selected in the UI.
+        Elements cannot be selected and are only available for events like tap, click, etc.
+    */
+    setPassive
+    (
+        /*
+            true - element is not selectable,
+            false - element is selectable
+        */
+        flag = true
+    )
+    {
+        this.focus.forEach
+        (
+            (el, i) =>
+            {
+                el.setAttribute( "tabindex", flag ? "-1" : "0" );
+                /* Отменяем стандартный mousedown, чтобы фокус не уходил */
+                if( flag )
+                {
+                    el.addEventListener
+                    (
+                        "mousedown",
+                        e => e.preventDefault()
+                    );
+                }
+                else
+                {
+                    /* Удаляем обработчик, если элемент снова обычный */
+                    el.removeEventListener
+                    (
+                        "mousedown",
+                        e => e.preventDefault()
+                    );
+                }
+            }
+        );
+        return this;
+    }
+
+
+
+    /*
+        Регистрация списка директив как именованного действия.
+        В дальнейшем это действие может быть запущено по таймеру
+        или по событию от DOM элемента.
     */
     action
     (
         /* Идентификатор действия */
         id,
-        /*
-            массив pusa директив для исполнения при срабатывании,
-            если пустой, то вызов будет отправлен на сервер
-        */
+        /* массив pusa директив для исполнения при срабатывании */
         directives,
-        /* url или uri обработчика на серере */
-        callback = null,
-        /*
-            массив аргументов, которые будут возвращены в обработчик
-            будет обработан при наступлении события, используя getVal
-        */
-        data = { type:"&type", id: "#id", class:"#class", name:"#name" },
-        /* интервал между срабатываниями события (мс), 0 - каждое событие */
+        /* интервал между срабатываниями (мс), 0 - каждое событие */
         throttleMls = 0
     )
     {
         if( directives === null ) directives = [];
-
         const old = this.actions[ id ];
         if( old )
         {
-            /* Сброс периодического события если назначено командой start*/
+            /* Сброс периодического события если назначено командой start */
             if( old.timer )
             {
                 clearTimeout( old.timer );
@@ -1044,14 +1129,15 @@ class Pusa
                 clearTimeout( old.throttleTime );
             }
         }
+        /* Создание записи события */
         this.actions[ id ] =
         {
             directives: directives,
-            callback: callback,
-            data: data,
             throttle: throttleMls,
             timer: null,
+            /* Последнее событие для учета тротлинга */
             lastEvent: null,
+            /* Таймер троблинга будет запущен при есть есть тролинг */
             timerThrottle: null
         };
         return this;
@@ -1072,15 +1158,16 @@ class Pusa
         id
     )
     {
-        const ids = Array.isArray(id) ? id : [id];
+        const ids = Array.isArray(id) ? id : [ id ];
         const n = ids.length;
 
+        /* Цикл по всем элементам фокуса */
         this.focus.forEach
         (
             ( el, i ) =>
             {
                 const actionId = ids[ i % n ];
-                const stored = this.domStorage.get(el) || {};
+                const stored = this.domStorage.get( el ) || {};
 
                 /* Снимаем старый обработчик того же типа */
                 if( stored.handlers && stored.handlers[ type ])
@@ -1091,18 +1178,8 @@ class Pusa
                 /* Создаем новый обработчик */
                 const handler = (evt) =>
                 {
-                    const eventData = [];
-                    const actionData = this.actions[ actionId ]?.data || {};
-                    /* Сборка args из action.data */
-                    for( const key in actionData )
-                    {
-                        const val = this.getVal( actionData[ key ], el, evt );
-                        if( val === undefined || val === null )
-                            delete eventData[key];
-                        else
-                            eventData[ key ] = val;
-                    }
-                    this.eventHandler( actionId, eventData, type );
+                    /* Вызываем обработчик */
+                    this.eventHandler( actionId, type, el, evt );
                 };
 
                 /* Добавляем обработчик к объекту */
@@ -1114,14 +1191,45 @@ class Pusa
                     el,
                     {
                         ...stored,
-                        handlers: { ...stored.handlers, [type]: handler },
+                        handlers: { ...stored.handlers, [ type ]: handler },
                         actionId
                     }
                 );
             }
         );
-
         return this;
+    }
+
+
+
+    /*
+        Вызов удаленного метода с указанным url
+    */
+    send
+    (
+        /* адрес вызова */
+        url,
+        /* аргументы в формате ключ значение (getVal) */
+        args = {}
+    )
+    {
+        /* Формирование аргументов */
+        const a = { ...args };
+        for( const key in args )
+        {
+            const val = this.getVal
+            (
+                a[ key ],
+                this.lastElement,
+                this.lastEvent
+            );
+
+            if( !val )
+                delete a[ key ];
+            else
+                a[ key ] = val;
+        }
+        this.sendCmd( url, a );
     }
 
 
@@ -1152,7 +1260,7 @@ class Pusa
             /* Описываем обработчик таймера */
             const cb = () =>
             {
-                this.eventHandler( id, null, "timer" );
+                this.eventHandler( id, "timer" );
                 if( !continues ) evt.timer = null;
             };
 
@@ -1288,36 +1396,9 @@ class Pusa
 
 
     /*
-        Возврат значения трея на сервер
-    */
-    get
-    (
-        /* запрашиваемый ключ */
-        key = null,
-        /* адрес обратного вызова */
-        callback = null,
-        /* данные вызывающей стороны */
-        data = null
-    )
-    {
-        if( key !== null )
-        {
-            this.sendCommand
-            (
-                'tray-get',
-                { key: key, value: this.tray[ key ] },
-                callback
-            );
-        }
-        return this;
-    }
-
-
-
-    /*
         Размещает значение из tray в буфер обмена
     */
-    toClipboard
+    clipboardFromTray
     (
         /* ключ tray */
         key = null
@@ -1333,17 +1414,48 @@ class Pusa
 
 
     /*
-        Размещает значение буфера обмена в трее
+        Размещает значение буфера обмена в ключе лотка
+        Метод асинхронен
     */
-    async fromClipboard
+    clipboardToTray
+    (
+        /* имя ключа в лотке */
+        key = null,
+        /* директивы для выполнения после получения значения */
+        directives = []
+    )
+    {
+        if( key !== null )
+        {
+            navigator.clipboard.readText().then
+            (
+                val =>
+                {
+                    /* Асинхронне размещение значения */
+                    this.tray[ key ] = val;
+                    /* Запуск директив */
+                    this.exec( directives );
+                }
+            );
+        }
+        return this;
+    }
+
+
+
+    /*
+        Размещает выбранный на странице текст в специфический
+        ключ лотка
+    */
+    async copyToTray
     (
         /* имя ключа в лотке */
         key = null
     )
     {
-        if( key !== null )
+        if( key )
         {
-            this.tray[ key ] = await navigator.clipboard.readText();
+            this.tray[ key ] = window.getSelection().toString();
         }
         return this;
     }
@@ -1371,6 +1483,54 @@ class Pusa
                     const attrs = tupple[i % n];
                     for(const k in attrs)
                         el.setAttribute(k, attrs[k]);
+                }
+            );
+        }
+        return this;
+    }
+
+
+
+    /*
+        Set attributes or values for all focused elements
+        - INPUT[type=text|…]: .value
+        - INPUT[type=checkbox|radio]: .checked
+        - TEXTAREA: .value
+        - Others: .innerHTML
+        Tuples repeat cyclically if fewer than focus elements
+    */
+    setValue
+    (
+        values = []
+    )
+    {
+        if( values.length )
+        {
+            const n = values.length;
+            this.focus.forEach
+            (
+                ( el, i ) =>
+                {
+                    const val = values[ i % n ];
+                    switch( el.tagName )
+                    {
+                        case "INPUT":
+                            switch( el.type.toLowerCase() )
+                            {
+                                case "checkbox":
+                                case "radio":
+                                    el.checked = !!val;
+                                break;
+                                default:
+                                    el.value = val;
+                            }
+                        break;
+                        case "TEXTAREA":
+                            el.value = val;
+                        break;
+                        default:
+                            el.innerHTML = val;
+                    }
                 }
             );
         }
@@ -1439,7 +1599,7 @@ class Pusa
     /*
         Отправка формы
     */
-    send()
+    sendForm()
     {
         this.focus.forEach
         (
@@ -1451,7 +1611,6 @@ class Pusa
                 }
             }
         );
-
         return this;
     }
 
@@ -1661,9 +1820,9 @@ class Pusa
         /* Отправка на бэк */
         if( route[1] && origin !== "back" )
         {
-            this.sendCommand
+            this.sendCmd
             (
-                "log",
+                '/log/message',
                 {
                     /* уровень: info/debug/warning/error */
                     level:  type,
@@ -1674,6 +1833,7 @@ class Pusa
                 }
             );
         }
+
         return this;
     }
 

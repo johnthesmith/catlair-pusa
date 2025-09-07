@@ -10,11 +10,11 @@ Subsequent events are sent back to the server, which generates new directives.
 </p>
      
 <pre>
-┌──────────┐                 ┌────────────┐                 ┌───────┐
-│          │── directives ──▶│    Pusa    │──── content ───▶│       │
-│ Backend  │                 │ (Frontend) │                 │  DOM  │
-│          │◀─── events ─────│            │◀─── events ─────│       │
-└──────────┘                 └────────────┘                 └───────┘
+┌──────────────────────┐               ┌────────────┐                 ┌───────┐
+│         Pusa         │──directives──▶│    Pusa    │──── content ───▶│       │
+│       Backend        │               │ (Frontend) │                 │  DOM  │
+│ directives=f(events) │◀───events─────│            │◀─── events ─────│       │
+└──────────────────────┘               └────────────┘                 └───────┘
 </pre>
 
 <h2>

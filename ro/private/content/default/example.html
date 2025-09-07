@@ -1,1 +1,61 @@
-exaple
+<h2>
+    Examples
+</h2>
+
+<p>
+    This section contains various examples of interactive usage of Pusa. All
+    examples do not use any custom JS code.
+</p>
+
+<div class="code js">
+/* no custom js */
+</div>
+
+<h3>
+    Content Modification
+</h3>
+
+<p>
+    This example demonstrates the ability to request and dynamically change content.
+</p>
+
+<button id="get-uuid">
+    Get uuid
+</button>
+<input type="text" id="uuid" placeholder="uuid"/>
+
+<h3>
+    Clipboard
+</h3>
+
+<p>
+    Select any text on the page, click <b>copy</b> and <b>paste</b>. The marked
+    text will be copied to the clipboard, sent to the backend, and after processing
+    placed into the textarea.
+</p>
+
+<div id="copypaste">
+    <button>
+        Copy
+    </button>
+    <button>
+        Paste
+    </button>
+    <button>
+        Clear
+    </button>
+</div>
+
+<textarea id="clipboard-source" placeholder="type an expression" cols="80" rows="5"/>
+</textarea>
+
+<h3>
+    Cursor Coordinates
+</h3>
+
+<p>
+    Move the cursor over the field. The backend handles the <b>mousemove</b> event
+    and outputs the coordinates. In this example, the update frequency is limited
+    to 800 milliseconds.
+</p>
+
