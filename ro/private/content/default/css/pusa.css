@@ -3,16 +3,32 @@
 */
 
 
+
 /* подсветка фокуса */
 .pusa-focus
 {
-    border: 1px solid #ff00007c;
-    border-radius: 1px;
-    box-sizing: border-box;
+/*    border: 1px solid #007c007c!important;*/
+/*    border-radius: 1px;*/
+/*    box-sizing: border-box!important;*/
+    box-shadow: 
+        0px 0px 3px #007c00ff;
+    background: repeating-linear-gradient(
+        45deg,
+        #007c0022 0,
+        #007c0022 2px,
+        #007c0000 2px,
+        #007c0000 0.25em
+    )!important;
+    color: #007c00ff!important;
 }
 
 
-/* визуальный индикатор загрузки */
+
+/******************************************************************************
+    Pusa load indicator
+*/
+
+/* Base style */
 #pusa-indicator
 {
     position: fixed;
@@ -29,20 +45,27 @@
     display: none;
 }
 
-#pusa-indicator.show { display: block; }
-#pusa-indicator.hide { display: none; }
+
+
+/* Pusa indicator loading */
+#pusa-indicator.show 
+{
+    display: block;
+}
 
 
 
+/* Pusa indicator hide */
+#pusa-indicator.hide
+{
+    display: none;
+}
 
 
 
-
-
-
-
-
-
+/******************************************************************************
+    Code css
+*/
 .code 
 {
     display: block;
@@ -54,6 +77,8 @@
     border-left: 1em solid;
 }
 
+
+
 .code::before 
 {
     display: block;
@@ -62,11 +87,15 @@
     padding: 0.5em;
 }
 
+
+
 .js      
 {
     background: #80008033;
     border-color: #80008033;
 }
+
+
 
 .js::before 
 {
@@ -74,11 +103,15 @@
     background: #800080;
 }
 
+
+
 .html
 {
     background: #00008033;
     border-color: #00008033;
 }
+
+
 
 .html::before
 {
@@ -86,11 +119,15 @@
     background: #000080;
 }
 
+
+
 .json
 {
     background: #64640033;
     border-color: #64640033;
 }
+
+
 
 .json::before
 {
@@ -98,11 +135,15 @@
     background: #646400;
 }
 
+
+
 .php
 {
     background: #00640033;
     border-color: #00640033;
 }
+
+
 
 .php::before
 {

@@ -12,54 +12,187 @@
 </div>
 
 
+<div class="section">
+    <h3>
+        #1 Изменение контента
+    </h3>
 
-<h3>
-    Изменение контента
-</h3>
+    <p>
+        Пример демонстрирует возможность запроса и динамического изменения контента.
+    </p>
 
-<p>
-    Пример демонстрирует возможность запроса и динамического изменения контента.
-</p>
-
-<button id="get-uuid">
-    Получить uuid
-</button>
-<input type="text" id="uuid" placeholder="uuid"/>
-
-
-
-<h3>
-    Буффер обмена
-</h3>
-
-<p>
-    Выделите любой текст на странице, нажмите <b>скопировать</b> и
-    <b>вставить</b>. Помеченный текст будет скопирован в буфер обмена, отправлен
-    на backend, и после обработки размещен в textarea.
-<p>
-
-<div id="copypaste">
-    <button>
-        Скопировать
-    </button>
-    <button>
-        Вставить
-    </button>
-    <button>
-        Очистить
-    </button>
+    <div class="horizontal">
+        <button id="get-uuid">
+            Получить uuid
+        </button>
+        <input type="text" id="uuid" placeholder="uuid"/>
+    </div>
 </div>
 
-<textarea id="clipboard-source" placeholder="напишите выражение" cols="80" rows="5"/>
-</textarea>
 
 
-<!--<h3>-->
-<!--    Координаты курсора-->
-<!--</h3>-->
-<!---->
-<!--<p>-->
-<!--    Перемещайте курсор по полю. Backend обрабатывает событие <b>mousemove</b> и -->
-<!--    выводит координаты. В примере частота обмена ограничена 800 миллесекундами.-->
-<!--</p>-->
+<div class="section">
+    <h3>
+        #2 Буффер обмена
+    </h3>
 
+    <p>
+        Выделите любой текст на странице, нажмите <b>скопировать</b> и
+        <b>вставить</b>. Помеченный текст будет скопирован в буфер обмена, отправлен
+        на backend, и после обработки размещен в textarea.
+    <p>
+
+    <div id="copypaste" class="horizontal">
+        <button>
+            Скопировать
+        </button>
+        <button>
+            Вставить
+        </button>
+        <button>
+            Очистить
+        </button>
+    </div>
+
+    <textarea id="clipboard-source" placeholder="напишите выражение" cols="80" rows="5"/>
+    </textarea>
+</div>
+
+
+<div class="section">
+    <h3>
+        #3 Координаты курсора
+    </h3>
+
+    <p>
+        Перемещайте курсон на поле. Backend будет обрабатывать каждое событие <b>mousemove</b> 
+        с учетом дискретности и выводить координаты.
+    </p>
+
+    <div class="horizontal">
+        <label for="throttle">Дискретность</label>
+        <input
+            type="range"
+            id="throttle"
+            name="throttle"
+            min="100"
+            max="1000"
+            step="50"
+            value="500"
+            value="500"
+        >
+        <span id="throttleValue">500</span>
+        <span>mls</span>
+    </div>
+
+    <div
+        style=
+        "
+            height:100px;
+            border:1px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        "
+        id="example-3-box"
+    >
+    </div>
+</div>
+
+
+
+
+<div class="section">
+    <h3>
+        #4 Forms
+    </h3>
+
+    <p>
+        Заполните форму и отправьте ее на обработку. Backend выполнит работу и
+        добавит форму в таблицу. В данном примере backend не сохранят данные.
+    </p>
+
+    <form id="order-form" class="horizontal" style="display:flex; justify-content: center; align-items: center;">
+        <div class="horizontal">
+            <label for="product">продукт</label>
+            <input id="product" name="product" type="text">
+        </div>
+
+        <div class="horizontal">
+            <label for="qty">количество</label>
+            <input id="qty" name="quantity" type="number" min="1" value="1" style="text-align:right">
+        </div>
+
+        <div class="horizontal">
+            <label for="price">цена</label>
+            <input id="price" name="price" type="number" min="0" step="0.01" value="0.00" style="text-align:right">
+        </div>
+
+        <button type="button" class="submith">Insert</button>
+    </form>
+
+    <style>
+        .id-cell       { flex: 0 0 25em; }
+        .product-cell  { flex: 1 1 auto }
+        .quantity-cell { flex: 0 0 10%; }
+        .price-cell    { flex: 0 0 10%; }
+        .total-cell    { flex: 0 0 10%; }
+    </style>
+
+    <div id="table">
+    </div>
+</div>
+
+
+
+<div class="section">
+    <h3>
+        #5 Фокус элементов
+    </h3>
+    <p>
+        Показаны способы позиционирования фокуса на элементах для последующих манипуляций.
+    </p>
+    <div class="horizontal" id="focus-battons">
+        <button id="focus-body">
+            body
+        </button>
+        <button id="focus-siblings">
+            siblings
+        </button>
+        <button id="focus-this">
+            focus this
+        </button>
+        <button id="focus-parent">
+            parent
+        </button>
+        <button id="focus-grandparent">
+            grandparent
+        </button>
+        <button id="focus-p">
+            all `p`
+        </button>
+    </div>
+</div>  
+
+
+
+<div class="section">
+    <h3>
+        #6 Валидация ввода
+    </h3>
+
+    <p>
+        Пример показывает возможности валидации ввода.
+    </p>
+
+    <div class="horizontal">
+        <label for="phone">Phone</label>
+        <input type="text" id="phone" placeholder="+"/>
+        <label id="country"/></label>
+    </div>
+
+    <div class="horizontal" style="display:none">
+        <label for="moment">Moment</label>
+        <input type="text" id="moment"/>
+    </div>
+</div>

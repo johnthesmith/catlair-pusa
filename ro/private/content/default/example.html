@@ -11,51 +11,194 @@
 /* no custom js */
 </div>
 
-<h3>
-    Content Modification
-</h3>
 
-<p>
-    This example demonstrates the ability to request and dynamically change content.
-</p>
+<div class="section">
+    <h3>
+        #1 Content Modification
+    </h3>
 
-<button id="get-uuid">
-    Get uuid
-</button>
-<input type="text" id="uuid" placeholder="uuid"/>
+    <p>
+        This example demonstrates the ability to request and dynamically change content.
+    </p>
 
-<h3>
-    Clipboard
-</h3>
-
-<p>
-    Select any text on the page, click <b>copy</b> and <b>paste</b>. The marked
-    text will be copied to the clipboard, sent to the backend, and after processing
-    placed into the textarea.
-</p>
-
-<div id="copypaste">
-    <button>
-        Copy
-    </button>
-    <button>
-        Paste
-    </button>
-    <button>
-        Clear
-    </button>
+    <div class="horizontal">
+        <button id="get-uuid">
+            Get uuid
+        </button>
+        <input type="text" id="uuid" placeholder="uuid"/>
+    </div>
 </div>
 
-<textarea id="clipboard-source" placeholder="type an expression" cols="80" rows="5"/>
-</textarea>
 
-<h3>
-    Cursor Coordinates
-</h3>
 
-<p>
-    Move the cursor over the field. The backend handles the <b>mousemove</b> event
-    and outputs the coordinates. In this example, the update frequency is limited
-    to 800 milliseconds.
-</p>
+<div class="section">
+    <h3>
+        #2 Clipboard
+    </h3>
 
+    <p>
+        Select any text on the page, click <b>copy</b> and <b>paste</b>. The marked
+        text will be copied to the clipboard, sent to the backend, and after processing
+        placed into the textarea.
+    </p>
+
+    <div class="horizontal">
+        <div id="copypaste">
+            <button>
+                Copy
+            </button>
+            <button>
+                Paste
+            </button>
+            <button>
+                Clear
+            </button>
+        </div>
+    </div>
+
+    <textarea 
+        id="clipboard-source" 
+        placeholder="type an expression" 
+        cols="80" 
+        rows="5
+    "/>
+    </textarea>
+</div>
+
+
+
+<div class="section">
+    <h3>
+        #3 Cursor Coordinates
+    </h3>
+
+    <p>
+        Move the cursor over the field. The backend handles the <b>mousemove</b> event
+        and outputs the coordinates.
+    </p>
+
+    <div class="horizontal">
+        <label for="throttle">Throttle:</label>
+        <input 
+            type="range" 
+            id="throttle" 
+            name="throttle" 
+            min="100" 
+            max="1100" 
+            step="200" 
+            value="500" 
+            value="500"
+        >
+        <span id="throttleValue">500</span>
+        <span>ms</span>
+    </div>
+
+    <div 
+        style=
+        "
+            height:100px; 
+            border:1px solid black; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        " 
+        id="example-3-box"
+    >
+    </div>
+</div>
+
+
+<div class="section">
+    <h3>
+        #4 Forms
+    </h3>
+
+    <p>
+        Fill out the form and submit it for processing.
+        The backend will perform the operation and add the form to the table.
+        In this example, the backend does not save the data
+    </p>
+
+    <form id="order-form" class="horizontal" style="display:flex; justify-content: center; align-items: center;">
+        <div class="horizontal">
+            <label for="product">Product</label>
+            <input id="product" name="product" type="text">
+        </div>
+
+        <div class="horizontal">
+            <label for="qty">Quantity</label>
+            <input id="qty" name="quantity" type="number" min="1" value="1" style="text-align:right">
+        </div>
+        
+        <div class="horizontal">
+            <label for="price">Price</label>
+            <input id="price" name="price" type="number" min="0" step="0.01" value="0.00" style="text-align:right">
+        </div>
+
+        <button type="button" class="submith">Insert</button>
+    </form>
+
+    <style>
+        .id-cell       { flex: 0 0 25em; }
+        .product-cell  { flex: 1 1 auto }
+        .quantity-cell { flex: 0 0 10%; }
+        .price-cell    { flex: 0 0 10%; }
+        .total-cell    { flex: 0 0 10%; }
+    </style>
+
+    <div id="table">
+    </div>
+</div>
+
+
+<div class="section">
+    <h3>
+        #5 Focus
+    </h3>
+    <p>
+        Shown are ways to position the focus on elements for subsequent operations.
+    </p>   
+    <div class="horizontal" id="focus-battons">
+        <button id="focus-body">
+            body
+        </button>
+        <button id="focus-siblings">
+            siblings
+        </button>
+        <button id="focus-this">
+            focus this
+        </button>
+        <button id="focus-parent">
+            parent
+        </button>
+        <button id="focus-grandparent">
+            grandparent
+        </button>
+        <button id="focus-p">
+            all `p`
+        </button>
+    </div>
+</div>
+
+
+
+<div class="section">
+    <h3>
+        #6 Input vlidation
+    </h3>
+
+    <p>
+        Demonstration of input validation.
+    </p>
+
+    <div class="horizontal">
+        <label for="phone">Phone</label>
+        <input type="text" id="phone" placeholder="+"/>
+        <label id="country"/></label>
+    </div>
+
+    <div class="horizontal" style="display:none">
+        <label for="moment">Moment</label>
+        <input type="text" id="moment"/>
+    </div>
+</div>

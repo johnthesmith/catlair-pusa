@@ -4,6 +4,8 @@ body
     color: #1e1e1e;
 }
 
+
+
 .top
 {
     background-color: #3b4b5c;
@@ -15,10 +17,14 @@ body
     padding-left: 7em;
 }
 
+
+
 .page
 {
     background-color: #ffffff;
 }
+
+
 
 .bottom
 {
@@ -26,28 +32,34 @@ body
     color: #333;
 }
 
+
+
 .page blockquote
 {
     border-left: 4px solid #ccc;
     color: #555;
 }
 
+
+
 .page pre
 {
     background-color: #f0f0f0;
 }
+
+
 
 .page code
 {
     background-color: #eef;
 }
 
+
+
 .page a
 {
     color: #3366cc;
 }
-
-
 
 
 
@@ -58,13 +70,14 @@ body
     color: #fff;
 }
 
+
+
 .menu .item
 {
     color: #fff;
     background-color: transparent;
     transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
 }
-
 
 
 
@@ -81,9 +94,37 @@ input
     padding: 0.5em 1.0em;
 }
 
+
+
+
 button
 {
     background-color: #3b4b5c;
     padding: 0.5em 1.0em;
     color: #fff;
+    transition: background-color 0.1s;
+}
+
+button:active
+{
+    background-color: #7b8b9c;
+}
+
+
+
+
+
+
+.selectable {
+    padding: 0.5em 1.0em;
+    color: #000;
+    transition: background-color 0.1s;
+}
+
+.selectable:hover {
+    background-color: #d5dae0;
+}
+
+.selectable:active {
+    background-color: #c2c8cf;
 }

@@ -19,6 +19,6 @@ def optimize_js(input_file, output_file):
         f.write(code.strip())
 
 if __name__ == "__main__":
-    optimize_js(sys.argv[1], sys.argv[2])
+    optimize_js( "./ro/private/content/default/js/pusa.js", "./ro/private/content/default/js/pusa.min.js" )
 
 
