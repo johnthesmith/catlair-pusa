@@ -2,15 +2,21 @@
     Hello world
 </h1>
 
-<p> This small example demonstrates Pusa’s ability to work only 
-    with backend code.
+<p>
     <button id="helloworld">
         Click me
     </button>
 </p>
 
-<div class="code js">
-/* no custom js */
+<p>
+    This small example demonstrates Pusa’s ability to work only 
+    with backend code.
+</p>
+
+<div class="code html">
+&lt;button id="helloworld"&gt;
+    Click me
+&lt;/button&gt;
 </div>
 
 <div class="code php">
@@ -29,14 +35,9 @@ $this
 -> event( 'click', 'helloworld-click' );        /* set action on click */
 </div>
 
-<div class="code html">
-&lt;button id="helloworld"&gt;
-    Click me
-&lt;/button&gt;
+<div class="code js">
+/* no custom js */
 </div>
-
-
-
 
 <p> 
     Pusa uses a declarative format of directives that are generated during 
@@ -56,3 +57,8 @@ backend method execution.
     [ "event", "click", "helloworld-click" ]
 ]
 </div>
+
+<p>
+    Thus, the development of the active part of the frontend application has been moved to the backend.
+</p>
+

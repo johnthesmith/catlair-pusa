@@ -175,6 +175,13 @@ textarea
 
 
 
+.scroll-margin-top
+{
+    scroll-margin-top: var(--focus-offset, 4em);
+}
+
+
+
 .menu .item
 {
     text-decoration: none;

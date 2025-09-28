@@ -6,6 +6,7 @@ body
 
 
 
+
 .top
 {
     background-color: #3b4b5c;
@@ -96,7 +97,6 @@ input
 
 
 
-
 button
 {
     background-color: #3b4b5c;
@@ -105,13 +105,12 @@ button
     transition: background-color 0.1s;
 }
 
+
+
 button:active
 {
     background-color: #7b8b9c;
 }
-
-
-
 
 
 
@@ -121,9 +120,13 @@ button:active
     transition: background-color 0.1s;
 }
 
+
+
 .selectable:hover {
     background-color: #d5dae0;
 }
+
+
 
 .selectable:active {
     background-color: #c2c8cf;

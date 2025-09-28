@@ -4,8 +4,22 @@
 
 <p>
     Раздел содержит различные примеры интерактивного использования Pusa. Все
-    примеры не используют специфический js код.
+    примеры не используют специфический js код, но исключительно библиотеку framework
+    <a
+        href="https://github.com/johnthesmith/catlair-pusa/blob/main/ro/private/content/default/js/pusa.js"
+        target="_blank"
+    >pusa.js</a>.
 </p>
+    
+
+<p>
+    Backend код примеров размещен в файле 
+    <a 
+        href="https://github.com/johnthesmith/catlair-pusa/blob/main/ro/private/payload/pusa_pages.php"
+        target="_blank"       
+    >pusa_pages.php</a>.
+</p>
+
 
 <div class="code js">
 /* no custom js */
@@ -157,19 +171,22 @@
             body
         </button>
         <button id="focus-siblings">
-            siblings
+            элементы сиблинги
         </button>
         <button id="focus-this">
-            focus this
+            событийный элемент
         </button>
         <button id="focus-parent">
-            parent
+            родитель
         </button>
         <button id="focus-grandparent">
-            grandparent
+            преродитель
         </button>
         <button id="focus-p">
-            all `p`
+            все тэги `p`
+        </button>
+        <button id="dump">
+            вывод в консоль
         </button>
     </div>
 </div>  
@@ -196,3 +213,51 @@
         <input type="text" id="moment"/>
     </div>
 </div>
+
+
+
+<div class="section">
+    <h3>
+        #7 Скроллинг
+    </h3>
+    <p>
+        Демонстрируется возможость позиционирования элемента на странице.
+        Клик переместит страницу на элемент <b>uuid</b>.
+    </p>
+    <div class="horizontal">
+        <button type="button" class="example7 scroll-to-uuid">Scroll uuid input</button>
+        <button type="button" class="example7 scroll-top">Scroll top</button>
+    </div>
+</div>
+
+
+
+<div class="section">
+    <h3>
+        #8 Динамическая подгрузка 
+    </h3>
+    <p>
+        Демонстрация возможности динамический загрузки контента при
+        скролировании. Изображения предоставляются ресурсом
+        <a href="https://picsum.photos" target="_blank">https://picsum.photos</a>
+    </p>
+    <div style="max-height:20em; overflow:scroll;" id="scroll-field">
+    </div>
+</div>
+
+
+
+<div class="section">
+    <h3>
+        #9 Таймер
+    </h3>
+    <p>
+        Пример даёт возможность запускать и останавливать таймер. Каждый вызов 
+        таймера выполняет следующую итерацию с бэкендом, изменяя состояние 
+        визуального глюкала.
+    </p>
+    <button type="button" id="timer-start">start</button>
+    <button type="button" id="timer-stop">stop</button>
+    <input id="timer-indicator"/>
+</div>
+

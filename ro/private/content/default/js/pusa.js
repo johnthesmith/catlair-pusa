@@ -26,29 +26,14 @@
     - выделять элементы фокусом для действий;
     - навешивать события и директивы локально или отправлять на сервер;
     - управлять таймерами и состоянием элементов;
+
+
+    Основные понятия:
+        trap - список DOM элементов над которыми выполняются действия
+        tray - перечень ключей содержащих значение, для обмена
 */
 
 
-/*
-    Литералы
-
-    В аргументах директив Pusa первым символом может выступать литерал.
-    Последующее выражение используется в качестве источника с учетом литерала.
-    Пример #id. При остуствии литерала используется значение как есть.
-
-    Литералы
-        # - исползуется для извлечения состояний событийного элемента
-            id      - идентификатор элемента
-            type    - тип (тэг) элемента
-            class   - класс элемента
-            value   - значение элемента либо value либо innerHTML
-            name    - имя элемента
-        @ - атрибут событийного элемента (не рекомендуется)
-        $ - свойство событийного элемента (не рекомендуется)
-        & - атрибут события
-        * - ключ объекта tray
-        ^ - ключ объекта событийной формы
-*/
 
 class Pusa
 {
@@ -66,38 +51,38 @@ class Pusa
     /*
         Операторы управления фокусом
     */
-    /* Заменяет текущий focus новым результатом */
-    static FOCUS_SET     = "set";
-    /* Добавляет результат к текущему focus */
-    static FOCUS_MERGE   = "merge";
-    /* Убирает результат из текущего focus */
-    static FOCUS_EXCLUDE = "exclude";
+    /* Заменяет текущий trap новым результатом */
+    static TRAP_SET     = "set";
+    /* Добавляет результат к текущему trap */
+    static TRAP_MERGE   = "merge";
+    /* Убирает результат из текущего trap */
+    static TRAP_EXCLUDE = "exclude";
 
     /*
         Операторы размещения новых объектов
     */
-    /* перед обхектом фокуса в родителе parent[ ..., new, focus ] */
+    /* перед обхектом фокуса в родителе parent[ ..., new, trap ] */
     static INSERT_BEFORE    = "before";
-    /* после объекта фокуса в родителе parent[ focus, new, ... ] */
+    /* после объекта фокуса в родителе parent[ trap, new, ... ] */
     static INSERT_AFTER     = "after";
-    /* первый элемент в вэлементе фокуса focus[ new, ... ] */
+    /* первый элемент в вэлементе фокуса trap[ new, ... ] */
     static INSERT_FIRST     = "first";
-    /* последний элемент в элементе фокуса focus[ ..., new ] */
+    /* последний элемент в элементе фокуса trap[ ..., new ] */
     static INSERT_LAST      = "last";
-    /* элемент фокуса размещается в новом parent[ ..., new[ focus ], ... ] */
+    /* элемент фокуса размещается в новом parent[ ..., new[ trap ], ... ] */
     static INSERT_WRAP      = "wrap";
 
     /* Перечень разрешенных директив */
     allowedDirectives = new Set
     ([
         /* Действия */
-        "alert",
         "config",
         "log",
-        /* Управление фокусом */
+        "dump",
+        /* Управление ловушкой */
         "clear",
-        "root",
-        "body",
+        "capture",
+        "deep",
         "parents",
         "children",
         "grab",
@@ -111,17 +96,18 @@ class Pusa
         "setProp",
         "setPassive",
         "view",
+        "align",
         "scroll",
         "addClasses",
         "removeClasses",
         /* Управление действием*/
         "action",
+        "go",
         "trigger",
         "event",
         "start",
         "stop",
         "map",
-        "form",
         "post",
         /* Управление окружением */
         "url",
@@ -135,10 +121,7 @@ class Pusa
         "clipboardToTray",
         "copyToTray",
         "pasteFromTray",
-        /* Формы */
-        "sendFrom",
         /* Платформозависимые методы */
-        "object",
         "method",
         "js"
     ]);
@@ -163,7 +146,7 @@ class Pusa
         this.cfg =
         {
             /* Подсветка фокуса на странице HTML*/
-            highlightFocus: true,
+            highlightTrap: true,
             /* умолчательный адрес событий, если не указан явно при вызове */
             callback: "/pusa/default",
             log:
@@ -176,9 +159,9 @@ class Pusa
             }
         };
         /* основной буфер DOM */
-        this.focus = [];
+        this.trap = [];
         /* стэк фокуса */
-        this.focusStack = [];
+        this.trapStack = [];
         /* именованное хранилище переменных в формате ключ-значение */
         this.tray = {};
         /* активные запросы */
@@ -208,14 +191,12 @@ class Pusa
         this.requestId = 0;
         /* Создание визуального индикатора Pusa */
         this.createIndicator();
-        /* оповещение журнала о запуске Pusa*/
-        this.log( Pusa.LOG_INFO, 'Pusa started' );
-        /* последняя форма, для который вызвана form() */
-        this.lastForm = null;
         /* последний элемент вызвывший событие */
-        this.lastElement = null;
+        this.lastActor = null;
         /* последнее событие на элементе */
         this.lastEvent = null;
+        /* оповещение журнала о запуске Pusa*/
+        this.log( Pusa.LOG_INFO, 'Pusa started' );
 
         let el = document.getElementById( 'pusa-init' );
         if( el )
@@ -317,9 +298,7 @@ class Pusa
     (
         /* адрес вызова */
         url,
-        /*
-            возвращаемые аргументы в формате ключ значение
-        */
+        /* возвращаемые аргументы в формате ключ значение */
         args = {}
     )
     {
@@ -467,14 +446,239 @@ class Pusa
 
 
     /*
+        Сборка постбуффера в текущем контексте
+    */
+    buildPostBuffer()
+    {
+        /* Формирование аргументов */
+        let a = {};
+        for( const key in this.postBuffer )
+        {
+            const val = this.getVal( this.postBuffer[ key ]);
+            if( val ) a[ key ] = val;
+        }
+        return a;
+    }
+
+
+
+    getVal(operand, element = null)
+    {
+        if (typeof operand !== 'string') return operand;
+
+        /* Быстрая проверка формата source|subject(|method) */
+        if (/^[a-zA-Z0-9_]+(\|[a-zA-Z0-9_]+){1,2}$/.test(operand))
+        {
+            return this.getValRaw(operand, element);
+        }
+
+        /* Иначе — ищем %...% и подставляем */
+        return operand.replace(/%(.+?)%/g, (match, inner) =>
+        {
+            const val = this.getValRaw(inner, element);
+            return val !== null && val !== undefined ? val : '';
+        });
+    }
+
+
+
+    /*
+        Универсальный экстрактор значения из выражения
+        Нотация:
+            источник|предмет|способ
+
+        1. Источник — откуда брать данные:
+            - value : прямое значение, те возвращается предмет, способ игнорируется
+            - item  : текущий элемент при поисках
+            - trap : текущий фокусный элемент (this.trap)
+            - actor : элемент вызвавший соыбтие (this.lastActor)
+            - event : объект события (this.lastEvent)
+            - tray  : объект tray
+            если не распознано, возвращается исходное значение
+
+        2. Предмет — конкретный атрибут/свойство/ключ, который извлекаем -
+           пример: id, href, class, value, name и иные идентификаторы,
+           специфичные для источника
+
+        3. Способ — как извлекать из источника, актуален для trap, actor, item:
+           - pusa   : по умолчанию, абстрагирует код от специфики js, html.
+                        id,
+                        type,
+                        class,
+                        value,
+                        name,
+                        disabled
+           - attr   : DOM-атрибут, не рекомендуется ***.
+           - prop   : DOM-свойство, не рекомендуется ***
+           - form   : значение атрибута формы с указанным именем
+
+        Примеры:
+
+            trap|id            id текущего первого фокусного элемента
+                                (pusa-абстракция по умолчанию)
+            trap|class|pusa    класс фокусного элемента через pusa
+            actor|id            id элемента, вызвавшего событие
+            actor|href|attr     атрибут href элемента-инициатора события
+            event|type          тип события (lastEvent.type)
+            tray|login          ключ login из объекта tray
+            value|any           прямое значение "any"
+            abrakadabra         значение абракадабра
+    */
+    getValRaw
+    (
+        operand,
+        /* Элемент для извлечения */
+        element = null
+    )
+    {
+        let r = operand;
+        if( typeof operand === 'string' )
+        {
+            const [ source, second ] = operand.split( /\|(.+)/ );
+            switch( source )
+            {
+                default: r = operand; break;
+                case 'event': r = second && this.lastEvent ? this.lastEvent[ second ] : null; break;
+                case 'tray': r = second ? this.tray[ second ] : null; break;
+                case 'value': r = second; break;
+                case 'item':
+                case 'trap':
+                case 'actor':
+                    /* Уточнение элемента источника e */
+                    let e = null;
+                    switch( source )
+                    {
+                        case 'item': e = element; break;
+                        /* Используем первый фокусны элемент при наличии */
+                        case 'trap': e = this.trap[ 0 ]; break;
+                        /* Используем последуний событийный элемент */
+                        case 'actor': e = this.lastActor; break;
+                    }
+
+                    if( !e )
+                    {
+                        r = null;
+                    }
+                    else
+                    {
+                        /* Рзабиваем вторую часть на предмет и метод */
+                        let subject = null, method = null;
+                        if( second )
+                        {
+                            [ subject, method ] = second.split( /\|(.+)/ );
+                        }
+                        switch( method ?? 'pusa' )
+                        {
+                            case 'pusa':
+                                switch( subject )
+                                {
+                                    case 'id':
+                                        r = e.getAttribute ? e.getAttribute( 'id' ) : null;
+                                    break;
+                                    case 'type':
+                                        r = e.tagName.toLowerCase();
+                                    break;
+                                    case 'class':
+                                        r = e.getAttribute( 'class' );
+//                                console.log( source, subject, method, r );
+                                    break;
+                                    case 'disabled':
+                                        r = e.disabled === true;
+                                    break;
+                                    case 'name':
+                                        r = e.getAttribute ? e.getAttribute( 'name' ) : null;
+                                    break;
+                                    case 'value':
+                                        r =
+                                        (
+                                            e.tagName === 'INPUT' &&
+                                            (
+                                                e.type === 'checkbox' ||
+                                                e.type === 'radio'
+                                            )
+                                        )
+                                        ? e.checked
+                                        : ( e.value ?? e.innerText );
+                                    break;
+                                    default:
+                                        this.log
+                                        (
+                                            Pusa.LOG_WARNING,
+                                            'unknown-pusa-argument',
+                                            {
+                                                subject: subject
+                                            }
+                                        )
+                                        r = null;
+                                    break;
+                                }
+                            break;
+                            case 'attr':
+                                r = subject && getAttribute ? e.getAttribute( subject ) : null;
+                            break;
+                            case 'prop':
+                                r = subject ? e[ subject ] : null;
+                            break;
+                            case 'form':
+                                r
+                                = subject && e ?.tagName === 'FORM'
+                                ? e.elements[ subject ]?.value ?? null
+                                : null;
+                            break;
+                            default:
+                                this.log
+                                (
+                                    Pusa.LOG_WARNING,
+                                    'unknown-extract-method',
+                                    {
+                                        method: method
+                                    }
+                                )
+                                r = null;
+                            break;
+                        }
+                    }
+                break;
+            }
+        }
+        return r;
+    }
+
+
+
+    /*
+        Cheeck tramp is empty end return warning in to log
+    */
+    checkTrap
+    (
+        detail
+    )
+    {
+        let r = true;
+        if( this.trap.length == 0 )
+        {
+            r = false;
+            this.log
+            (
+                Pusa.LOG_WARNING,
+                'trap-is-empty-for',
+                detail
+            );
+        }
+        return r;
+    }
+
+
+
+    /*
         Выполняет подсветку фокуса если этого требует конфигурация
     */
-    highlightFocus()
+    highlightTrap()
     {
-        if( this.cfg.highlightFocus )
+        if( this.cfg.highlightTrap )
         {
             /* добавить подсветку Pusa */
-            this.focus?.forEach(el => el.classList?.add( "pusa-focus" ));
+            this.trap?.forEach(el => el.classList?.add( 'pusa-trap' ));
         }
         return this;
     }
@@ -484,41 +688,41 @@ class Pusa
     /*
         Метод применения нового массива к фокусу с учетом оператора
     */
-    applyFocus
+    applyTrap
     (
         /* Массив элементов */
-        newFocus,
+        newTrap,
         /*
             Оператор в аргументах
-            { operator: FOCUS_SET | FOCUS_MERGE | FOCUS_EXCLUDE }
+            { operator: TRAP_SET | TRAP_MERGE | TRAP_EXCLUDE }
         */
-        operator = Pusa.FOCUS_SET
+        operator = Pusa.TRAP_SET
     )
     {
         /* убрать подсветку Pusa */
-        this.focus?.forEach(el => el.classList?.remove( "pusa-focus" ));
+        this.trap?.forEach(el => el.classList?.remove( "pusa-trap" ));
 
         switch( operator )
         {
-            case Pusa.FOCUS_SET:
-                this.focus = newFocus;
+            case Pusa.TRAP_SET:
+                this.trap = newTrap;
             break;
-            case Pusa.FOCUS_MERGE:
-                this.focus = [ ...new Set([ ...this.focus, ...newFocus ]) ];
+            case Pusa.TRAP_MERGE:
+                this.trap = [ ...new Set([ ...this.trap, ...newTrap ]) ];
             break;
-            case Pusa.FOCUS_EXCLUDE:
-                this.focus = this.focus.filter
+            case Pusa.TRAP_EXCLUDE:
+                this.trap = this.trap.filter
                 (
-                    el => !newFocus.includes( el )
+                    el => !newTrap.includes( el )
                 );
             break;
             default:
-                /* По умолчанию FOCUS_SET */
-                this.focus = newFocus;
+                /* По умолчанию TRAP_SET */
+                this.trap = newTrap;
             break;
         }
 
-        this.highlightFocus();
+        this.highlightTrap();
         return this;
     }
 
@@ -556,7 +760,7 @@ class Pusa
         else
         {
             this.lastEvent = event;
-            this.lastElement = element;
+            this.lastActor = element;
             directives.forEach
             (
                 item =>
@@ -586,69 +790,9 @@ class Pusa
                 }
             );
             this.lastEvent = null;
-            this.lastElement = null;
+            this.lastActor = null;
         }
         return this;
-    }
-
-
-
-    /*
-        Универсальный извлекатель значения из выражения value
-        Применяются литералы.
-    */
-    getVal
-    (
-        operand,
-        /* Элемент для извлечения */
-        element = null,
-        /* Дополнительный массив для извлечения */
-        event = null
-    )
-    {
-        if( typeof operand !== "string" ) return operand;
-
-        /* Извлечение атрибутов из текущих значений если не указаны*/
-        element = element || this.lastElement;
-        event   = event   || this.lastEvent;
-
-        const source = operand.slice(1);
-        switch( operand[ 0 ])
-        {
-            case "#": // Pusa-абстракции
-                if( element )
-                {
-                    switch(source)
-                    {
-                        case "id":      return element.getAttribute( "id" );
-                        case "type":    return element.tagName.toLowerCase();
-                        case "class":   return element.getAttribute( "class" );
-                        case "value":   return element.value != null
-                                        ? element.value
-                                        : element.innerText;
-                        case "name":    return element.getAttribute( "name" );
-                        default:        return undefined;
-                   }
-               }
-               else
-               {
-                   return null;
-               }
-            case "*":  // tray-ключ
-                return this.tray[ source ];
-            case "@": /* DOM-атрибут */
-                return element ? element.getAttribute( source )  : null;
-            case "$": /* DOM-свойство */
-                return element ? element[ source ] : null;
-            case "&":
-                return source ? ( event ? event[ source ] : null) : event;
-            case "^": /* значение из lastForm по имени элемента */
-                return this.lastForm
-                ? this.lastForm.elements[ source ]?.value
-                : null;
-            default:  // прямое значение
-                return operand;
-        }
     }
 
 
@@ -661,9 +805,9 @@ class Pusa
             [ "not", true ] = false
             [ "in", niddle, stack ] = false
             [ "equal", "operand1", "operand2" ] = false
-        Операнды см getVal для префиксов @ # $ &
+        Операнды см getVal
         Вложенности:
-            [ "or", [ "equal", "@id", "my" ], [ "equal", "#id", "MY" ]]
+            [ "or", [ "equal", "trap id", "my" ], [ "equal", "trap id", "MY" ]]
     */
     filter
     (
@@ -677,6 +821,12 @@ class Pusa
         const [op, ...args] = cond;
         switch( op )
         {
+            case "!=":
+            case "not-equal":
+            {
+                const [left, right] = args;
+                return this.getVal( left, elem ) != this.getVal( right, elem );
+            }
             case "==":
             case "equal":
             {
@@ -694,10 +844,13 @@ class Pusa
                     return stack.includes(needle);
                 }
             }
+            case "!":
             case "not":
                 return !this.filter( elem, args[ 0 ]);
+            case "&":
             case "and":
                 return args.every( sub => this.filter( elem, sub ));
+            case "|":
             case "or":
                 return args.some( sub => this.filter( elem, sub ));
             default:
@@ -763,10 +916,11 @@ class Pusa
     {
         return this
         .push()
-        .body()
+        .capture([ 'document', 'body' ])
         .insert( null, Pusa.INSERT_LAST )
         .setAttr([{ id: "pusa-indicator", class: "hide" }])
-        .pop();
+        .pop()
+        ;
     }
 
 
@@ -777,8 +931,8 @@ class Pusa
     {
         return this
         .push()
-        .body()
-        .children( [ "equal", "#id", "pusa-indicator" ] )
+        .capture([ 'document', 'body' ])
+        .children( [ "equal", "item|id", "pusa-indicator" ] )
         .setAttr([{ class: this.activeRequest.length > 0 ? "show" : "hide" }])
         .pop()
         ;
@@ -789,21 +943,6 @@ class Pusa
     /**************************************************************************
         Директивы
     */
-
-
-    /*
-        Вывод сообщения
-    */
-    alert
-    (
-        /* Сообщение*/
-        message
-    )
-    {
-        window.alert( message );
-        return this;
-    }
-
 
 
     /*
@@ -826,33 +965,10 @@ class Pusa
     */
     clear()
     {
-        this.applyFocus([]);
+        this.applyTrap([]);
         return this;
     }
 
-
-
-    /*
-        Загрузка в focus корнеого dom объекта
-        Предыдущее состояние фоуса сбрасывается.
-    */
-    root()
-    {
-        this.applyFocus([ document.documentElement ]);
-        return this;
-    }
-
-
-
-    /*
-        Загрузка в focus контейнера видимого контента, в случае с DOM это body
-        Предыдущее состояние фоуса сбрасывается.
-    */
-    body()
-    {
-        this.applyFocus([ document.body ]);
-        return this;
-    }
 
 
 
@@ -871,39 +987,41 @@ class Pusa
         /* глубина проведения поиска, 0 - вся цепочка*/
         depth = 1,
         /* функция для операции изменения фокуса после поиска */
-        operator = Pusa.FOCUS_SET
+        operator = Pusa.TRAP_SET
     )
     {
-        let currentFocus = [ ...this.focus ];
+        let currentTrap = [ ...this.trap ];
         let result = [];
         for
         (
             let i = 0;
-            currentFocus.length > 0 && (depth === 0 || i < depth);
+            currentTrap.length > 0 && (depth === 0 || i < depth);
             i++
         )
         {
-            const nextFocus = [];
-            for(let el of currentFocus)
+            const nextTrap = [];
+            for(let el of currentTrap)
             {
                 const parent = el.parentElement;
                 if
                 (
                     !parent ||
                     parent === document.documentElement ||
-                    nextFocus.includes(parent)
+                    nextTrap.includes(parent)
                 ) continue;
-                nextFocus.push(parent);
+                nextTrap.push(parent);
                 const res = this.filter(parent, filter);
                 if(res === null) return this; /* останавливаем весь обход */
-                if(res && !result.includes(parent))
+                if( res && !result.includes( parent ))
+                {
                     result.push(parent);
+                }
             }
-            currentFocus = nextFocus;
-            if(currentFocus.length === 0) break;
+            currentTrap = nextTrap;
+            if(currentTrap.length === 0) break;
         }
 
-        this.applyFocus(result, operator);
+        this.applyTrap(result, operator);
         return this;
     }
 
@@ -921,31 +1039,35 @@ class Pusa
         /* глубина проведения поиска, 0 - вся цепочка*/
         depth = 0,
         /* функция для операции изменения фокуса после поиска */
-        operator = Pusa.FOCUS_SET
+        operator = Pusa.TRAP_SET
     )
     {
-        let currentFocus = [ ...this.focus ];
+        let currentTrap = [ ...this.trap ];
         let resultBuffer = [];
         /* Цикл глубины */
         for
         (
             let i = 0;
-            currentFocus.length > 0 && ( depth === 0 || i < depth );
+            currentTrap.length > 0 && ( depth === 0 || i < depth );
             i++
         )
         {
-            const nextFocus = [];
+            const nextTrap = [];
             /* Цикл фокусных элементов */
-            for(let el of currentFocus)
+            for(let el of currentTrap)
             {
                 if (el.nodeType === 1)
                 {
                     /* Цикл по детям фокусного элемента */
-                    for(let child of Array.from( el.children ))
+                    for( let child of Array.from( el.children ))
                     {
-                        if(!resultBuffer.includes( child ) && !nextFocus.includes( child ))
+                        if
+                        (
+                            !resultBuffer.includes( child ) &&
+                            !nextTrap.includes( child )
+                        )
                         {
-                            nextFocus.push( child );
+                            nextTrap.push( child );
                             if( this.filter( child, filter ) )
                             {
                                 resultBuffer.push( child );
@@ -954,25 +1076,11 @@ class Pusa
                     }
                 }
             }
-            currentFocus = nextFocus;
-            if( currentFocus.length === 0 ) break;
+            currentTrap = nextTrap;
+            if( currentTrap.length === 0 ) break;
         }
 
-        this.applyFocus( resultBuffer, operator );
-
-        if( this.focus.length == 0 )
-        {
-            this.log
-            (
-                Pusa.LOG_WARNING,
-                'focus-is-empty',
-                {
-                    filter: filter,
-                    depth: depth,
-                    operator: operator
-                }
-            );
-        }
+        this.applyTrap( resultBuffer, operator );
         return this;
     }
 
@@ -984,10 +1092,10 @@ class Pusa
     grab
     (
         /* функция для операции изменения фокуса после поиска */
-        operator = Pusa.FOCUS_SET
+        operator = Pusa.TRAP_SET
     )
     {
-        return this.applyFocus([ this.lastElement ], operator );
+        return this.applyTrap([ this.lastActor ], operator );
     }
 
 
@@ -997,7 +1105,7 @@ class Pusa
     */
     push()
     {
-        this.focusStack.push([...this.focus]);
+        this.trapStack.push([...this.trap]);
         return this;
     }
 
@@ -1008,10 +1116,11 @@ class Pusa
     */
     pop()
     {
-        if( this.focusStack.length > 0 )
+        if( this.trapStack.length > 0 )
         {
-            this.focus = this.focusStack.pop();
-            this.highlightFocus();
+            this.clear();
+            this.trap = this.trapStack.pop();
+            this.highlightTrap();
         }
         else
         {
@@ -1041,7 +1150,7 @@ class Pusa
         const created = [];
         content = content ?? '<div></div>';
 
-        this.focus.forEach
+        this.trap.forEach
         (
             el =>
             {
@@ -1050,7 +1159,7 @@ class Pusa
                     const tmp = document.createElement('div');
                     tmp.innerHTML = content;
 
-                    const children = Array.from(tmp.childNodes);
+                    const children = Array.from( tmp.childNodes );
                     if (children.length === 0) return;
 
                     /* первый элемент по loc */
@@ -1092,7 +1201,7 @@ class Pusa
             }
         );
 
-        this.applyFocus(created);
+        this.applyTrap(created);
         return this;
     }
 
@@ -1107,8 +1216,8 @@ class Pusa
     */
     remove()
     {
-        let newFocus = [];
-        for( let el of this.focus )
+        let newTrap = [];
+        for( let el of this.trap )
         {
             /* Получаем данные элемента из хранилища */
             const data = this.domStorage.get( el );
@@ -1123,9 +1232,9 @@ class Pusa
             this.domStorage.delete( el );
 
             /* Добавляем родителя элемента в новый фокус */
-            if( el.parentNode && !newFocus.includes( el.parentNode ))
+            if( el.parentNode && !newTrap.includes( el.parentNode ))
             {
-                newFocus.push( el.parentNode );
+                newTrap.push( el.parentNode );
             }
 
             /* Удаляем сам элемент из DOM */
@@ -1133,14 +1242,14 @@ class Pusa
         }
 
         /* Применяем новый фокус */
-        this.applyFocus( newFocus );
+        this.applyTrap( newTrap );
         return this;
     }
 
 
 
     /*
-        Makes it impossible for elements in focus to be selected in the UI.
+        Makes it impossible for elements in trap to be selected in the UI.
         Elements cannot be selected and are only available for events like tap, click, etc.
     */
     setPassive
@@ -1152,7 +1261,7 @@ class Pusa
         flag = true
     )
     {
-        this.focus.forEach
+        this.trap.forEach
         (
             (el, i) =>
             {
@@ -1183,15 +1292,53 @@ class Pusa
 
 
     /*
-        Makes the first focused element visible in the viewport.
+        Перемещает все элементы в this.trap так, чтобы они полностью
+        помещались в viewport. Если элемент уже видим — не трогает.
+    */
+    align()
+    {
+alert('asd')
+        this.trap.forEach(el =>
+        {
+            const style = el.style;
+            const cs = getComputedStyle(el);
+
+            let left = parseFloat(cs.left) || 0;
+            let top  = parseFloat(cs.top)  || 0;
+
+            const width  = el.offsetWidth;
+            const height = el.offsetHeight;
+
+            const viewportWidth  = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+console.log( viewportWidth, viewportHeight);
+            if (left + width > viewportWidth)
+                left = viewportWidth - width;
+
+            if (top + height > viewportHeight)
+                top = viewportHeight - height;
+
+            if (left < 0) left = 0;
+            if (top  < 0) top  = 0;
+
+            style.left = left + 'px';
+            style.top  = top  + 'px';
+        });
+
+       return this;
+    }
+
+
+    /*
+        Makes the first traped element visible in the viewport.
     */
     view
     (
-        /* behavior - "auto" | "smooth" */
-        behavior = "auto"
+        /* behavior smooth */
+        smooth = false
     )
     {
-        const el = this.focus[0];
+        const el = this.trap[0];
         if( el )
         {
             el.scrollIntoView
@@ -1199,7 +1346,7 @@ class Pusa
                 {
                     block: "nearest",
                     inline: "nearest",
-                    behavior: behavior
+                    behavior: smooth ?  'smooth' : 'auto'
                 }
             );
         }
@@ -1209,7 +1356,7 @@ class Pusa
 
 
     /*
-        Scrolls the first focused element by given offsets or to start/end.
+        Scrolls the first traped element by given offsets or to start/end.
         Accepts numbers (relative) or "start"/"end" (absolute).
     */
     scroll
@@ -1218,11 +1365,11 @@ class Pusa
         x = 0,
         /* vertical offset or "start"/"end" */
         y = 0,
-        /* behavior - "auto" | "smooth" */
-        behavior = "auto"
+        /* behavior smooth */
+        smooth = false
     )
     {
-        this.focus.forEach
+        this.trap.forEach
         (
             el =>
             {
@@ -1241,7 +1388,7 @@ class Pusa
                             : (y === "end")
                             ? el.scrollHeight
                             : y,
-                        behavior: behavior
+                        behavior: smooth ?  'smooth' : 'auto'
                     }
                 );
             }
@@ -1302,20 +1449,87 @@ class Pusa
 
 
 
+
     /*
-        Запускает действие при наличии такового по идентификатору
+        В зависимости от условия выпоет одно из двух действий
     */
-    trigger
+    go
     (
-        /* Идентификатор действия, допустимы литералы */
-        id
+        /* Условие обрабатывается через фльтр */
+        condition,
+        /* Действие при положительном условии */
+        trueActionId,
+        /* Действие при отрицательном условии */
+        falseActionId
     )
     {
-        const action = this.actions[ this.getVal( id )];
-        if( action  && Array.isArray( action.directives ))
+        const actionId = this.getVal
+        (
+            this.filter( null, condition )
+            ? trueActionId
+            : falseActionId,
+            null
+        );
+        const action = this.actions[ actionId ];
+        if( action )
         {
             this.exec( action.directives );
         }
+        else
+        {
+            this.log
+            (
+                this.LOG_WARNING,
+                'action-for-trigger-not-found',
+                { id: actionId }
+            );
+        }
+        return this;
+    }
+
+
+
+    /*
+        В зависимости от условия выпоет одно из двух действий
+    */
+    trigger
+    (
+        /* Условие обрабатывается через фльтр */
+        condition,
+        /* Действие при положительном условии */
+        trueActionId,
+        /* Действие при отрицательном условии */
+        falseActionId
+    )
+    {
+        this.trap.forEach
+        (
+            el =>
+            {
+                const actionId = this.getVal
+                (
+                    this.filter( el, condition )
+                    ? trueActionId
+                    : falseActionId,
+                    el
+                );
+                const action = this.actions[ actionId ];
+                if( action )
+                {
+                    /* передаём текущий элемент */
+                    this.exec( action.directives, el );
+                }
+                else
+                {
+                    this.log
+                    (
+                        this.LOG_WARNING,
+                        'action-for-trigger-not-found',
+                        { id: actionId }
+                    );
+                }
+            }
+        );
         return this;
     }
 
@@ -1331,48 +1545,61 @@ class Pusa
         /* Тип DOM-события (click, input и т.д.) */
         type,
         /* Идентификатор действия action или массив идентификаторов */
-        id
+        id,
+        /* Растространять событие на родителя */
+        stop = false
     )
     {
         const ids = Array.isArray(id) ? id : [ id ];
         const n = ids.length;
 
         /* Цикл по всем элементам фокуса */
-        this.focus.forEach
-        (
-            ( el, i ) =>
-            {
-                const actionId = ids[ i % n ];
-                const stored = this.domStorage.get( el ) || {};
-
-                /* Снимаем старый обработчик того же типа */
-                if( stored.handlers && stored.handlers[ type ])
+        if( this.checkTrap({ directive: 'event', type: type, id: id }))
+        {
+            this.trap.forEach
+            (
+                ( el, i ) =>
                 {
-                    el.removeEventListener(type, stored.handlers[type]);
-                }
+                    const actionId = ids[ i % n ];
+                    const stored = this.domStorage.get( el ) || {};
 
-                /* Создаем новый обработчик */
-                const handler = (evt) =>
-                {
-                    /* Вызываем обработчик */
-                    this.eventHandler( actionId, type, el, evt );
-                };
-
-                /* Добавляем обработчик к объекту */
-                el.addEventListener( type, handler );
-
-                /* Обновляем только нужные ключи, сохраняя остальное */
-                this.domStorage.set
-                (
-                    el,
+                    /* Снимаем старый обработчик того же типа */
+                    if( stored.handlers && stored.handlers[ type ])
                     {
-                        ...stored,
-                        handlers: { ...stored.handlers, [ type ]: handler },
-                        actionId
+                        el.removeEventListener(type, stored.handlers[type]);
                     }
-                );
-            }
-        );
+
+                    /* Создаем новый обработчик */
+                    const handler = (evt) =>
+                    {
+                        if( actionId !== null )
+                        {
+                            /* Вызываем обработчик */
+                            this.eventHandler( actionId, type, el, evt );
+                        }
+                        if( stop )
+                        {
+                            /* Обрываем распространение события */
+                            evt.stopPropagation();
+                        }
+                    };
+
+                    /* Добавляем обработчик к объекту */
+                    el.addEventListener( type, handler );
+
+                    /* Обновляем только нужные ключи, сохраняя остальное */
+                    this.domStorage.set
+                    (
+                        el,
+                        {
+                            ...stored,
+                            handlers: { ...stored.handlers, [ type ]: handler },
+                            actionId
+                        }
+                    );
+                }
+            );
+        }
         return this;
     }
 
@@ -1393,31 +1620,6 @@ class Pusa
 
 
     /*
-        Устанавливает текущую форму в lastForm
-        Элементы формы будут использоваться при разрешении литералов ^ в post
-    */
-    form()
-    {
-        if( this.focus.length === 0 )
-        {
-            this.log( Pusa.LOG_WARNING, 'focus-empty-for-form' );
-        }
-        else
-        {
-            /* берем первый элемент фокуса */
-            const el = this.focus[ 0 ];
-            if( el.tagName !== 'FORM' )
-            {
-                this.log( Pusa.LOG_WARNING, 'not-a-form' );
-            }
-            this.lastForm = el;
-        }
-        return this;
-    }
-
-
-
-    /*
         Вызов удаленного метода с указанным url,
         при этом this.postBuffer будет использован как аргументы
     */
@@ -1427,21 +1629,12 @@ class Pusa
         url
     )
     {
-        /* Формирование аргументов с учетом литералов */
-        let a = {};
-        for( const key in this.postBuffer )
-        {
-            const val = this.getVal
-            (
-                this.postBuffer[ key ],
-                this.lastElement,
-                this.lastEvent
-            );
-            if( val ) a[ key ] = val;
-        }
+        /* Собрали буффер значений для отправки */
+        const buffer = this.buildPostBuffer();
+        /* Очистили буффер */
         this.postBuffer = {};
-        this.lastForm = {};
-        this.sendCmd( url, a );
+        /* Отправили по URL */
+        this.sendCmd( url, buffer );
     }
 
 
@@ -1675,26 +1868,36 @@ class Pusa
 
 
     /*
-        Установка атрибутов в фокусе
-        Кортежи устанавливаются для каждого очередного элемента фокуса
-        Если элементов в фокусе больше выполняется повтор
+        Устанавливает атрибуты для всех элементов в фокусе.
+        Каждый элемент получает объект из массива tupple по индексу i % n.
+        Если передан один объект, он применяется ко всем элементам.
     */
     setAttr
     (
-        /* Кортежи ключ значение { key: value, ... }, {...} */
+        /* Массив объектов { key: value, ... } или один объект */
         tupple = []
     )
     {
+        if( !Array.isArray(tupple) )
+        {
+            tupple = [tupple];
+        }
+
         if( tupple.length )
         {
             const n = tupple.length;
-            this.focus.forEach
+            this.trap.forEach
             (
-                (el, i) =>
+                ( el, i ) =>
                 {
-                    const attrs = tupple[i % n];
-                    for(const k in attrs)
-                        el.setAttribute(k, attrs[k]);
+                    const attrs = tupple[i % n]; /* циклично */
+                    for( const k in attrs )
+                    {
+                        if( el.setAttribute )
+                        {
+                            el.setAttribute( k, this.getVal( attrs[k], el ));
+                        }
+                    }
                 }
             );
         }
@@ -1704,22 +1907,22 @@ class Pusa
 
 
     /*
-        Set attributes or values for all focused elements
+        Set attributes or values for all traped elements
         - INPUT[type=text|…]: .value
         - INPUT[type=checkbox|radio]: .checked
         - TEXTAREA: .value
         - Others: .innerHTML
-        Tuples repeat cyclically if fewer than focus elements
+        Tuples repeat cyclically if fewer than trap elements
     */
     setValue
     (
         values = []
     )
     {
-        if( values.length )
+        if(this.checkTrap({ directive: 'setValue', values: values }))
         {
             const n = values.length;
-            this.focus.forEach
+            this.trap.forEach
             (
                 ( el, i ) =>
                 {
@@ -1769,38 +1972,25 @@ class Pusa
         tupple = []
     )
     {
-        if( tupple.length )
+        if( this.checkTrap({ directive: 'setValue', tupple: tupple }))
         {
+            if( !Array.isArray( tupple ))
+            {
+                tupple = [tupple];
+            }
             const n = tupple.length;
-            this.focus.forEach
+            this.trap.forEach
             (
-                ( el, i) =>
+                ( el, i ) =>
                 {
-                    const props = tupple[ i % n ];
-                    for( const k in props ) el[ k ] = props[ k ];
+                    const attrs = tupple[i % n];
+                    for( const k in attrs )
+                    {
+                        el[ k ] = this.getVal( attrs[k], el );
+                    }
                 }
             );
         }
-        return this;
-    }
-
-
-
-    /*
-        Отправка формы
-    */
-    sendForm()
-    {
-        this.focus.forEach
-        (
-            el =>
-            {
-                if( typeof el.submit === "function" )
-                {
-                    el.submit();
-                }
-            }
-        );
         return this;
     }
 
@@ -1819,7 +2009,7 @@ class Pusa
         if( Array.isArray( arg ) && arg.length )
         {
             const n = arg.length;
-            this.focus.forEach( ( el, i ) =>
+            this.trap.forEach( ( el, i ) =>
             {
                 const classes = arg[ i % n ];
                 if( Array.isArray( classes ) )
@@ -1847,7 +2037,7 @@ class Pusa
         if( Array.isArray( arg ) && arg.length )
         {
             const n = arg.length;
-            this.focus.forEach( ( el, i ) =>
+            this.trap.forEach( ( el, i ) =>
             {
                 const classes = arg[ i % n ];
                 if( Array.isArray( classes ) )
@@ -1899,24 +2089,84 @@ class Pusa
 
 
     /*
-        Загрузка в focus объекта браузера
-        Предыдущее состояние фокуса сбрасывается.
+        Загрузка в trap объекта браузера
+        Предыдущее состояние ловушки сбрасывается.
     */
-    object
+    capture
     (
         /* массив вида [ 'window', 'history' ]*/
-        pathArr
+        path
     )
     {
         let obj = globalThis;
-        for( const key of pathArr )
+        for( const key of path )
         {
-            if( obj[ key ] === undefined ) return this;
-            obj = obj[ key ];
+            if( obj[ key ])
+            {
+                obj = obj[ key ];
+            }
+            else
+            {
+                this.log( Pusa.LOG_ERROR, "object-not-found", { path:path } );
+                break;
+            }
         }
-        this.applyFocus([ obj ]);
+        this.applyTrap([ obj ]);
         return this;
     }
+
+
+
+    /*
+        Загрузка в trap методов свойств объектов в ловушке
+        Предыдущее состояние ловушки сбрасывается.
+    */
+    deep
+    (
+        /*
+            Путь до требуемого свойства или метода
+            массив вида [ 'style', ... ]
+        */
+        path
+    )
+    {
+        if( this.checkTrap({ directive: 'deep', path: path }))
+        {
+            const newTrap = [];
+            this.trap.forEach
+            (
+                ( el ) =>
+                {
+                    let obj = el;
+                    for( const key of path )
+                    {
+                        if( obj && obj[key] !== undefined )
+                        {
+                            obj = obj[key];
+                        }
+                        else
+                        {
+                            this.log
+                            (
+                                Pusa.LOG_ERROR,
+                                "object-not-found",
+                                { path }
+                            );
+                            obj = null;
+                            break;
+                        }
+                    }
+                    if( obj !== null )
+                    {
+                        newTrap.push(obj);
+                    }
+                }
+            );
+            this.applyTrap( newTrap );
+        }
+        return this;
+    }
+
 
 
     /*
@@ -1932,7 +2182,7 @@ class Pusa
         key
     )
     {
-        for( let el of this.focus )
+        for( let el of this.trap )
         {
             if (typeof el[ method ] === "function")
             {
@@ -2025,5 +2275,26 @@ class Pusa
         }
 
         return this;
+    }
+
+
+
+    /*
+        Отладочный метод вывода фокуса в консоль
+    */
+    dump()
+    {
+        console.group( 'Pusa dump' );
+        console.info( 'Config:', this.cfg );
+        console.info( 'Trap:', this.trap );
+        console.info( 'Tray:', this.tray );
+        console.info( 'Actions:', this.actions );
+        console.info( 'Post buffer:', this.postBuffer );
+        console.info( 'Builded post buffer:', this.buildPostBuffer() );
+        console.info( 'Last event element:', this.lastActor );
+        console.info( 'Last event:', this.lastEvent );
+        console.groupEnd();
+        return this;
+
     }
 }

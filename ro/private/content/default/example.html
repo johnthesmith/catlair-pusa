@@ -2,9 +2,15 @@
     Examples
 </h2>
 
-<p>
-    This section contains various examples of interactive usage of Pusa. All
-    examples do not use any custom JS code.
+<p> 
+    The section contains various examples of interactive usage of Pusa. All 
+    examples do not use specific JS code, only the framework library 
+    <a href="https://github.com/johnthesmith/catlair-pusa/blob/main/ro/private/content/default/js/pusa.js" target="_blank">pusa.js</a>.
+</p>
+
+<p> 
+    The backend code of the examples is located in the file 
+    <a href="https://github.com/johnthesmith/catlair-pusa/blob/main/ro/private/payload/pusa_pages.php" target="_blank">pusa_pages</a>. 
 </p>
 
 <div class="code js">
@@ -108,6 +114,7 @@
 </div>
 
 
+
 <div class="section">
     <h3>
         #4 Forms
@@ -151,31 +158,35 @@
 </div>
 
 
+
 <div class="section">
     <h3>
-        #5 Focus
+        #5 Trap
     </h3>
     <p>
-        Shown are ways to position the focus on elements for subsequent operations.
+        Shown are ways to position the trap on elements for subsequent operations.
     </p>   
-    <div class="horizontal" id="focus-battons">
-        <button id="focus-body">
+    <div class="horizontal" id="trap-battons">
+        <button id="trap-body">
             body
         </button>
-        <button id="focus-siblings">
+        <button id="trap-siblings">
             siblings
         </button>
-        <button id="focus-this">
-            focus this
+        <button id="trap-this">
+            trap this
         </button>
-        <button id="focus-parent">
+        <button id="trap-parent">
             parent
         </button>
-        <button id="focus-grandparent">
+        <button id="trap-grandparent">
             grandparent
         </button>
-        <button id="focus-p">
+        <button id="trap-p">
             all `p`
+        </button>
+        <button id="dump">
+            dump to console
         </button>
     </div>
 </div>
@@ -200,5 +211,69 @@
     <div class="horizontal" style="display:none">
         <label for="moment">Moment</label>
         <input type="text" id="moment"/>
+    </div>
+</div>
+
+
+
+<div class="section">
+    <h3>
+        #7 Scroll
+    </h3>
+    <p>
+        Shows the ability to position an element on the page.
+        Clicking will scroll the page to the <b>uuid</b> element.
+    </p>
+    <div class="horizontal">
+        <button type="button" class="example7 scroll-to-uuid">Scroll uuid input</button>
+        <button type="button" class="example7 scroll-top">Scroll top</button>
+    </div>
+</div>
+
+
+
+<div class="section">
+    <h3>
+        #8 Load on scroll
+    </h3>
+    <p>
+        Demonstration of dynamic content loading on scroll.
+        Images are provided by the resource.
+        <a href="https://picsum.photos" target="_blank">https://picsum.photos</a>
+    </p>
+    <div style="max-height:20em; overflow:scroll;" id="scroll-field">
+    </div>
+</div>
+
+
+
+<div class="section">
+    <h3>
+        #9 Timer
+    </h3>
+    <p>
+        The example allows you to start and stop the timer. Each timer call 
+        performs the next iteration with the backend, changing the state of the 
+        visual glitch generator.
+    </p>
+    <button type="button" id="timer-start">start</button>
+    <button type="button" id="timer-stop">stop</button>
+    <input id="timer-indicator"/>
+</div>
+
+
+
+<div class="section">
+    <h3>
+        #10 Windows
+    </h3>
+    <p>
+        Pusa имеет расширения для работы с оконами UI. Весь интерфейс
+        реализован на backend. Frontend не имеет специфических реализаций для оконного
+        интерфейса.
+    </p>
+    <div class="horizontal">
+        <button type="button" class="example10" id="dialog">dialog</button>
+        <button type="button" class="example10" id="popup">popup</button>
     </div>
 </div>
